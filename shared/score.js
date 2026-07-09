@@ -10,7 +10,7 @@
 }(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  var SCORE_VERSION = "1.0.0";
+  var SCORE_VERSION = "1.0.1";
 
   /* ---------- 十天干四化表(與 ziwei-learn GANHUA 同源) ---------- */
   var GANHUA = {
@@ -163,32 +163,22 @@
 
   /* -------------------------------------------------------------
      嚴重忌疊法偵測(對應 rules.json trigger.stack;優先序:三疊 > 生年+流日 > 流月+流日 > 流日沖生年)
+     只偵測「傳入 palace」的疊法——別宮的疊忌不得掛到本宮
      回傳 {key, stack:[...], palace} | null
      ------------------------------------------------------------- */
   function detectStack(acc, palace) {
     function has(pn, layer) { return acc[pn] && acc[pn].jiLayers.indexOf(layer) >= 0; }
+    if (!palace || !acc[palace]) return null;
     /* 三疊(生年+流月+流日 同宮) */
-    for (var i = 0; i < PALACE_ORDER.length; i++) {
-      var pn = PALACE_ORDER[i];
-      if (has(pn, "natal") && has(pn, "monthly") && has(pn, "daily"))
-        return { key: "triple", stack: ["生年忌", "流月忌", "流日忌"], palace: pn };
-    }
-    for (var j = 0; j < PALACE_ORDER.length; j++) {
-      var p2 = PALACE_ORDER[j];
-      if (has(p2, "natal") && has(p2, "daily"))
-        return { key: "natal_daily", stack: ["生年忌", "流日忌"], palace: p2 };
-    }
-    for (var k = 0; k < PALACE_ORDER.length; k++) {
-      var p3 = PALACE_ORDER[k];
-      if (has(p3, "monthly") && has(p3, "daily"))
-        return { key: "monthly_daily", stack: ["流月忌", "流日忌"], palace: p3 };
-    }
-    /* 流日忌沖對宮之生年忌:流日忌在 X,生年忌在 OPP(X) → 受沖宮=OPP(X) */
-    for (var m = 0; m < PALACE_ORDER.length; m++) {
-      var p4 = PALACE_ORDER[m];
-      if (has(p4, "daily") && has(OPP_PALACE[p4], "natal"))
-        return { key: "daily_chong_natal", stack: ["流日忌沖", "生年忌"], palace: OPP_PALACE[p4] };
-    }
+    if (has(palace, "natal") && has(palace, "monthly") && has(palace, "daily"))
+      return { key: "triple", stack: ["生年忌", "流月忌", "流日忌"], palace: palace };
+    if (has(palace, "natal") && has(palace, "daily"))
+      return { key: "natal_daily", stack: ["生年忌", "流日忌"], palace: palace };
+    if (has(palace, "monthly") && has(palace, "daily"))
+      return { key: "monthly_daily", stack: ["流月忌", "流日忌"], palace: palace };
+    /* 流日忌沖對宮之生年忌:本宮有生年忌、對宮有流日忌 → 本宮=受沖宮 */
+    if (has(palace, "natal") && has(OPP_PALACE[palace], "daily"))
+      return { key: "daily_chong_natal", stack: ["流日忌沖", "生年忌"], palace: palace };
     return null;
   }
 
@@ -225,6 +215,7 @@
     normPalace: normPalace,
     lightOf: lightOf,
     computeScores: computeScores,
+    detectStack: detectStack,
     applyFatigueCap: applyFatigueCap
   };
 }));

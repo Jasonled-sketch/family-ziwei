@@ -7,7 +7,7 @@
 <title>家庭命盤中心</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&family=LXGW+WenKai+TC&display=swap" rel="stylesheet">
 <style>
 /* ============ D1 基礎色字(03-design 定稿) ============ */
 :root{
@@ -21,7 +21,7 @@
   --dim-friend:#E68CB4;--dim-health:#6BCB9E;--dim-ji:#E06A50;
   /* 燈號 */
   --lt-good:#6BCB9E;--lt-flat:#E7C57D;--lt-bad:#E06A50;
-  --kai:'Kaiti TC','DFKai-SB','BiauKai','Noto Serif TC',serif;
+  --kai:'LXGW WenKai TC','Kaiti TC','DFKai-SB','BiauKai','Noto Serif TC',serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
@@ -264,23 +264,53 @@ body.is-admin #admin-fab{display:inline-flex;align-items:center;gap:6px}
     document.body.classList.add(s);
   }
 
+  function clearFzKeys(){
+    try{
+      Object.keys(localStorage).forEach(function(k){
+        if(k.indexOf('fz_')===0) localStorage.removeItem(k);
+      });
+    }catch(e){}
+  }
+  /* 授權通過 → 記 fz_auth_ok 供離線放行 */
+  function grantAccess(email){
+    try{localStorage.setItem('fz_auth_ok',JSON.stringify({email:email,at:Date.now()}));}catch(e){}
+    setState('auth-ok');
+    if(window.FZ && FZ.boot) FZ.boot();
+  }
+  /* 明確拒絕 → 立即清除全部 fz_*(共用瀏覽器防殘留) */
+  function denyAccess(displayText){
+    clearFzKeys();
+    var d = document.getElementById('auth-denied-email');
+    if(d) d.textContent = displayText;
+    setState('auth-denied');
+  }
+
   window.USLED_AUTH = {
     user:null,
+    isAdmin:function(){
+      return !!(this.user && (this.user.email||'').toLowerCase() === ADMIN_EMAIL);
+    },
+    /* 網路錯誤時,曾成功授權的同一 email 可離線放行 */
+    _offlineAuthOk:function(email,err){
+      var netErr = (err && (err.code==='unavailable' || err.code==='deadline-exceeded'))
+                   || (typeof navigator!=='undefined' && navigator.onLine===false);
+      if(!netErr) return false;
+      var ok=null;
+      try{ok=JSON.parse(localStorage.getItem('fz_auth_ok'));}catch(e){}
+      return !!(ok && ok.email===email);
+    },
+    _deny:denyAccess,
     signIn:function(){
       var errEl = document.getElementById('auth-err');
       if(errEl) errEl.textContent='';
       var provider = new firebase.auth.GoogleAuthProvider();
       fbAuth.signInWithPopup(provider).catch(function(e){
-        if(errEl) errEl.textContent='登入失敗: '+(e.message||e.code||'未知錯誤');
+        if(errEl) errEl.textContent='登入失敗: '+(e.code||'未知錯誤');
       });
     },
     signOut:function(){
       /* 登出清家人快取(個資防護) */
-      try{
-        Object.keys(localStorage).forEach(function(k){
-          if(k.indexOf('fz_')===0) localStorage.removeItem(k);
-        });
-      }catch(e){}
+      clearFzKeys();
       fbAuth.signOut().then(function(){ location.reload(); });
     }
   };
@@ -292,24 +322,25 @@ body.is-admin #admin-fab{display:inline-flex;align-items:center;gap:6px}
     var email = (user.email||'').toLowerCase();
     if(email === ADMIN_EMAIL){
       document.body.classList.add('is-admin');
-      setState('auth-ok');
-      if(window.FZ && FZ.boot) FZ.boot();
+      grantAccess(email);
       return;
     }
     /* 家庭權限:allowed_emails/{email}.family === true 才放行 */
     fbDb.collection('allowed_emails').doc(email).get().then(function(doc){
       if(doc.exists && doc.data().family === true){
-        setState('auth-ok');
-        if(window.FZ && FZ.boot) FZ.boot();
+        grantAccess(email);
       } else {
-        var d = document.getElementById('auth-denied-email');
-        if(d) d.textContent = user.email;
-        setState('auth-denied');
+        /* 明確讀到 doc 且 family!=true,或 doc 不存在 → 拒絕 */
+        denyAccess(user.email);
       }
     }).catch(function(e){
-      var d = document.getElementById('auth-denied-email');
-      if(d) d.textContent = (user.email||'')+' (檢查失敗: '+(e.message||e.code)+')';
-      setState('auth-denied');
+      if(USLED_AUTH._offlineAuthOk(email,e)){
+        /* 離線且此帳號曾授權成功 → 放行離線模式(灰條由資料層標示) */
+        setState('auth-ok');
+        if(window.FZ && FZ.boot) FZ.boot();
+      }else{
+        denyAccess((user.email||'')+' (檢查失敗: '+((e&&e.code)||'ERR')+')');
+      }
     });
   });
 })();
@@ -381,7 +412,7 @@ body.is-admin #admin-fab{display:inline-flex;align-items:center;gap:6px}
    家庭命盤中心 · Phase 1(文字版)
    評分引擎=shared/score.js(ZWSCORE)、文案=shared/rules.json
    ============================================================ */
-var APP_VERSION = "v0.1.0";
+var APP_VERSION = "v0.1.1";
 
 /* ---------- 小工具 ---------- */
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
@@ -398,9 +429,14 @@ var MEMBER_IDS=["jason","wife","child1","child2","child3","child4","mother","mot
 var HUA_KEYS=["lu","quan","ke","ji"];
 var HUA_ZH={lu:"祿",quan:"權",ke:"科",ji:"忌"};
 var PALACE_DIM={"官祿":"事業","財帛":"財運","遷移":"外出","交友":"朋友","疾厄":"健康"};
-/* 化星落命宮 → 個人一句(v1 自補文案;非 rules.json 50 條範圍) */
-var MING_LINE={lu:"今天整體順風,想做的事放膽推進一步。",quan:"今天幹勁足,適合主動出擊,語氣放軟效果更好。",ke:"今天形象加分,適合露臉、發表、見重要的人。",ji:"今天心緒偏緊,步調放慢,大決定睡一晚再說。"};
 var FALLBACK_TEXT="今日此面向平順,照常安排即可。";
+/* 文案層級換詞:規則庫以流日口吻撰寫,年/月層渲染時替換(日層不動) */
+function adaptText(text,layer){
+  var t=String(text||"");
+  if(layer==="yearly")return t.replace(/今天|今日/g,"今年").replace(/今晚/g,"年內").replace(/明天/g,"之後");
+  if(layer==="monthly")return t.replace(/今天|今日/g,"本月").replace(/今晚/g,"近期").replace(/明天/g,"月內");
+  return t;
+}
 var CACHE_KEY="fz_members_cache";
 
 /* ---------- 狀態 ---------- */
@@ -457,7 +493,7 @@ function chartOf(m){
     a=(m.calendar==="lunar")
       ? iztro.astro.byLunar(m.birthDate,ti,g,!!m.isLeapMonth,true,"zh-TW")
       : iztro.astro.bySolar(m.birthDate,ti,g,true,"zh-TW");
-  }catch(e){console.warn("排盤失敗",m.id,e);return null;}
+  }catch(e){console.warn("排盤失敗",m.id,(e&&e.code)||"ERR");return null;}
   CHARTS[m.id]=a;
   return a;
 }
@@ -471,7 +507,7 @@ function horoOf(m,dateStr){
   if(HORO_MEMO[key])return HORO_MEMO[key];
   var a=chartOf(m);if(!a)return null;
   var h;
-  try{h=a.horoscope(dateStr);}catch(e){console.warn("horoscope失敗",m.id,e);return null;}
+  try{h=a.horoscope(dateStr);}catch(e){console.warn("horoscope失敗",m.id,(e&&e.code)||"ERR");return null;}
   var o={
     decadal:{stem:h.decadal.heavenlyStem,branch:h.decadal.earthlyBranch},
     yearly:{stem:h.yearly.heavenlyStem,branch:h.yearly.earthlyBranch},
@@ -540,18 +576,21 @@ function pickRule(dim,huaZh,seed){
   return cands[seed%cands.length];
 }
 function severeRuleOf(stack){
-  if(!RULES||!stack)return null;
+  if(!RULES)return null;
+  var fallback=null;
+  RULES.rules.forEach(function(r){if(r.id==="嚴重忌_忌_fallback")fallback=r;});
+  if(!stack)return fallback;
   var want=JSON.stringify(stack.stack);
   var exact=null,any=null;
   RULES.rules.forEach(function(r){
-    if(r.dim!=="嚴重忌")return;
+    if(r.dim!=="嚴重忌"||r.id==="嚴重忌_忌_fallback")return;
     if(JSON.stringify(r.trigger.stack)!==want)return;
     if(r.trigger.palace===stack.palace)exact=r;
     if(r.trigger.palace==="任一")any=r;
   });
-  return exact||any;
+  return exact||any||fallback;
 }
-/* 該層四化命中清單:[{hua,star,palace,dim,rule,mingLine}] */
+/* 該層四化命中清單:[{hua,star,palace,dim,rule}](個人=命宮,文案同樣來自 rules.json) */
 function layerHits(m,stem,seed){
   var out=[];
   var a=chartOf(m);if(!a||!stem)return out;
@@ -566,10 +605,9 @@ function layerHits(m,stem,seed){
     if(!pn)return;
     var huaZh=HUA_ZH[hk];
     if(PALACE_DIM[pn]){
-      var rule=pickRule(PALACE_DIM[pn],huaZh,seed);
-      out.push({hua:huaZh,star:star,palace:pn,dim:PALACE_DIM[pn],rule:rule});
+      out.push({hua:huaZh,star:star,palace:pn,dim:PALACE_DIM[pn],rule:pickRule(PALACE_DIM[pn],huaZh,seed)});
     }else if(pn==="命宮"){
-      out.push({hua:huaZh,star:star,palace:pn,dim:"個人",mingLine:MING_LINE[hk]});
+      out.push({hua:huaZh,star:star,palace:pn,dim:"個人",rule:pickRule("個人",huaZh,seed)});
     }
     /* 其餘宮 v1 不顯示(田宅凶象由嚴重忌疊法承接) */
   });
@@ -580,10 +618,15 @@ function layerHits(m,stem,seed){
 function lightDot(light,hollow,size){
   return '<span class="lt lt-'+light+(hollow?' hollow':'')+'"'+(size?' style="width:'+size+'px;height:'+size+'px"':'')+'></span>';
 }
+var CACHE_TTL_MS=7*24*60*60*1000;
 function offbarHtml(){
   if(!OFFLINE)return "";
   var t=SYNCED_AT?new Date(SYNCED_AT):null;
   var ts=t?(t.getMonth()+1)+"/"+t.getDate()+" "+pad2(t.getHours())+":"+pad2(t.getMinutes()):"—";
+  /* 快取超過 7 天 → 醒目黃條(仍可用,不阻擋) */
+  if(SYNCED_AT&&(Date.now()-SYNCED_AT)>CACHE_TTL_MS){
+    return '<div class="banner-warn">⚠ 離線快取已超過 7 天(上次同步 '+esc(ts)+'),建議連網更新後再參考。</div>';
+  }
   return '<div class="banner-gray">📴 離線資料 · 上次同步 '+esc(ts)+' · 連線恢復後重新整理即可更新</div>';
 }
 function renderTopdate(){
@@ -638,7 +681,7 @@ function renderHome(){
         var tl=todayLightOf(m,VIEW_DATE);
         if(ltEl)ltEl.outerHTML='<span class="lt lt-'+tl.light+(m.hourConfidence==="unknown"?" hollow":"")+'" id="lt-'+esc(m.id)+'"></span>';
       }
-    }catch(e){console.warn("成員卡計算失敗",m.id,e);}
+    }catch(e){console.warn("成員卡計算失敗",m.id,(e&&e.code)||"ERR");}
     setTimeout(next,0);
   })();
 }
@@ -689,8 +732,8 @@ function renderPerson(id){
 
   /* 流年卡 / 流月卡 */
   if(h){
-    html+=layerCardHtml(m,"流年",seedY+"",h.yearly,seedY);
-    html+=layerCardHtml(m,"流月",VIEW_DATE.slice(0,7).replace("-","/"),h.monthly,seedM);
+    html+=layerCardHtml(m,"流年",seedY+"",h.yearly,seedY,"yearly");
+    html+=layerCardHtml(m,"流月",VIEW_DATE.slice(0,7).replace("-","/"),h.monthly,seedM,"monthly");
   }
   /* 流日六維卡 */
   html+='<div class="goldline"></div>';
@@ -700,7 +743,7 @@ function renderPerson(id){
     layerHits(m,h.daily.stem,seedD).forEach(function(hit){
       if(hit.dim==="個人"){
         html+='<div class="dimcard" style="border-left-color:var(--gold-d)"><div class="dimhead"><span class="nm">個人</span><span class="pl">命宮 · 化'+esc(hit.hua)+'('+esc(hit.star)+')</span></div>'+
-          '<div class="dimtext">'+esc(hit.mingLine||"")+'</div></div>';
+          '<div class="dimtext">'+esc(hit.rule?hit.rule.text:FALLBACK_TEXT)+'</div></div>';
         return;
       }
       /* 同維多化:忌優先,其餘保留首見 */
@@ -719,8 +762,8 @@ function renderPerson(id){
     /* 嚴重忌 */
     var sev=r.dims.filter(function(d){return d.dim==="嚴重忌";})[0];
     if(sev&&sev.palace&&sev.F>0){
-      var srule=r.severe?severeRuleOf(r.severe.stack):null;
-      var stext=srule?srule.text:("今日忌象集中在"+sev.palace+"宮:大事緩一緩,先做例行事,明天再衝。");
+      var srule=severeRuleOf(r.severe?r.severe.stack:null);
+      var stext=srule?srule.text:("今日忌象集中在"+sev.palace+"宮:大事緩一緩,先做例行事,明天再處理。");
       html+='<div class="dimcard d-嚴重忌'+(sev.light==="紅"?" severe-red":"")+'">'+
         '<div class="dimhead">'+lightDot(sev.light,unknown)+'<span class="nm">嚴重忌</span>'+
         '<span class="pl">'+esc(sev.palace)+'宮(全盤 F 最大)</span>'+
@@ -737,15 +780,16 @@ function renderPerson(id){
   }
   v.innerHTML=html;
 }
-function layerCardHtml(m,label,sub,layerObj,seed){
+function layerCardHtml(m,label,sub,layerObj,seed,layer){
   var hits=layerHits(m,layerObj.stem,seed);
   var rows=hits.map(function(hit){
+    var text=adaptText(hit.rule?hit.rule.text:FALLBACK_TEXT,layer);
     if(hit.dim==="個人"){
       return '<div class="hitline"><span class="hua hua-'+esc(hit.hua)+'">'+esc(hit.hua)+'</span>'+
-        '<div><div class="tx">'+esc(hit.mingLine||"")+'</div><div class="src">'+esc(hit.star)+' 落命宮</div></div></div>';
+        '<div><div class="tx">'+esc(text)+'</div><div class="src">'+esc(hit.star)+' 落命宮</div></div></div>';
     }
     return '<div class="hitline"><span class="hua hua-'+esc(hit.hua)+'">'+esc(hit.hua)+'</span>'+
-      '<div><div class="tx"><b style="color:var(--gold-d)">'+esc(hit.dim)+'</b> · '+esc(hit.rule?hit.rule.text:FALLBACK_TEXT)+'</div>'+
+      '<div><div class="tx"><b style="color:var(--gold-d)">'+esc(hit.dim)+'</b> · '+esc(text)+'</div>'+
       '<div class="src">'+esc(hit.star)+' 落'+esc(hit.palace)+'宮</div></div></div>';
   }).join("");
   if(!rows)rows='<div class="hitline"><div class="tx" style="color:var(--muted)">'+esc(label)+'四化未落在六維宮位,整體平順。</div></div>';
@@ -759,10 +803,10 @@ var FZ={
     $("#verTag").textContent=APP_VERSION;
     $("#verFoot").textContent="家庭命盤中心 "+APP_VERSION+" · 引擎 SCORE "+ZWSCORE.SCORE_VERSION;
     renderTopdate();
-    loadRules().catch(function(e){console.warn("rules.json 載入失敗",e);toast("文案庫載入失敗,建議稍後重整");})
+    loadRules().catch(function(e){console.warn("rules.json 載入失敗",(e&&e.code)||"ERR");toast("文案庫載入失敗,建議稍後重整");})
     .then(function(){
       return fetchMembers().catch(function(e){
-        console.warn("Firestore 讀取失敗,改用快取",e);
+        console.warn("Firestore 讀取失敗,改用快取",(e&&e.code)||"ERR");
         if(!useCacheOrFail()){
           $("#view").innerHTML='<div class="empty">無法連線資料庫,且沒有離線快取。<br>請檢查網路後重新整理。</div>';
           throw e;
@@ -773,7 +817,13 @@ var FZ={
     .catch(function(){});
     window.addEventListener("hashchange",route);
   },
+  guard:function(){
+    if(USLED_AUTH.isAdmin&&USLED_AUTH.isAdmin())return true;
+    toast("僅管理員可執行此操作");
+    return false;
+  },
   openAdmin:function(){
+    if(!FZ.guard())return;
     $("#admin-panel").classList.add("show");
     FZ.renderAdmin();
   },
@@ -810,10 +860,11 @@ var FZ={
           return '<li><span class="em">'+esc(em)+'</span><button class="del-btn" onclick="FZ.removeFamily(\''+esc(em)+'\')">移除</button></li>';
         }).join("")||'<li class="admin-empty">尚未授權其他家人</li>');
     }).catch(function(e){
-      ul.innerHTML='<li class="admin-empty" style="color:#E06A50">讀取失敗:'+esc(e.message||e.code)+'</li>';
+      ul.innerHTML='<li class="admin-empty" style="color:#E06A50">讀取失敗:'+esc((e&&e.code)||"ERR")+'</li>';
     });
   },
   addFamily:function(){
+    if(!FZ.guard())return;
     var input=$("#fam-email");
     var email=(input.value||"").trim().toLowerCase();
     if(!email||email.indexOf("@")<0){toast("請輸入有效 email");return;}
@@ -823,15 +874,17 @@ var FZ={
       familyAddedAt:firebase.firestore.FieldValue.serverTimestamp(),
       familyAddedBy:(USLED_AUTH.user&&USLED_AUTH.user.email)||"unknown"
     },{merge:true}).then(function(){input.value="";toast("已授權");FZ.loadFamily();})
-    .catch(function(e){toast("授權失敗:"+(e.message||e.code));});
+    .catch(function(e){toast("授權失敗:"+((e&&e.code)||"ERR"));});
   },
   removeFamily:function(email){
+    if(!FZ.guard())return;
     if(!confirm("移除 "+email+" 的家庭授權?(不影響其在其他工具的授權)"))return;
     db().collection("allowed_emails").doc(email).set({family:false},{merge:true})
       .then(function(){toast("已移除");FZ.loadFamily();})
-      .catch(function(e){toast("移除失敗:"+(e.message||e.code));});
+      .catch(function(e){toast("移除失敗:"+((e&&e.code)||"ERR"));});
   },
   editMember:function(id){
+    if(!FZ.guard())return;
     var m=null;
     MEMBERS.forEach(function(x){if(x.id===id)m=x;});
     var isNew=!m;
@@ -870,6 +923,7 @@ var FZ={
   segC:function(b,v){$("#f-cs").classList.toggle("on",v==="solar");$("#f-cl").classList.toggle("on",v==="lunar");FZ._c=v;$("#f-leaprow").style.display=(v==="lunar")?"flex":"none";},
   _g:null,_c:null,
   saveMember:function(isNew){
+    if(!FZ.guard())return;
     var id=$("#f-id").value;
     var name=($("#f-name").value||"").trim();
     var birthDate=$("#f-date").value;
@@ -899,7 +953,7 @@ var FZ={
       CHARTS={};DAY_MEMO={};HORO_MEMO={};CAP_MEMO={};
       return fetchMembers();
     }).then(function(){FZ.renderAdmin();route();})
-    .catch(function(e){toast("儲存失敗:"+(e.message||e.code));});
+    .catch(function(e){toast("儲存失敗:"+((e&&e.code)||"ERR"));});
   }
 };
 window.FZ=FZ;

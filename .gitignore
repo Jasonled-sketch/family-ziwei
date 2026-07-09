@@ -7,3 +7,9 @@ test-local/
 *.local.*
 node_modules/
 .claude/
+
+# 防呆:根目錄任何測試/暫存腳本
+test*.js
+*.test.js
+_*.js
+verify*.js

@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>家庭命盤中心</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ============ D1 基礎色字(03-design 定稿) ============ */
+:root{
+  --bg:#0B0918;--bg2:#120F24;--panel:#1A1633;--panel2:#221D42;--raise:#2B2452;
+  --line:#332C5A;--line2:#453C78;
+  --gold:#E7C57D;--gold-b:#F4DCA8;--gold-d:#C7A45B;
+  --purple:#9C7CF0;--purple-d:#6B4FC0;
+  --text:#EFEBFA;--muted:#A19AC8;--muted2:#78719D;
+  /* 六維語意色 */
+  --dim-career:#9C7CF0;--dim-wealth:#E7C57D;--dim-travel:#5FB9DD;
+  --dim-friend:#E68CB4;--dim-health:#6BCB9E;--dim-ji:#E06A50;
+  /* 燈號 */
+  --lt-good:#6BCB9E;--lt-flat:#E7C57D;--lt-bad:#E06A50;
+  --kai:'Kaiti TC','DFKai-SB','BiauKai','Noto Serif TC',serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.7;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(1.2px 1.2px at 18% 22%,rgba(244,220,168,.5),transparent 60%),
+    radial-gradient(1px 1px at 72% 12%,rgba(239,235,250,.35),transparent 60%),
+    radial-gradient(1.4px 1.4px at 85% 58%,rgba(231,197,125,.4),transparent 60%),
+    radial-gradient(1px 1px at 32% 78%,rgba(156,124,240,.3),transparent 60%),
+    radial-gradient(1px 1px at 55% 40%,rgba(239,235,250,.22),transparent 60%),
+    linear-gradient(180deg,var(--bg),var(--bg2) 60%,var(--bg))}
+.wrap{max-width:480px;margin:0 auto;padding:0 16px 60px}
+header.top{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;
+  height:52px;margin:0 -16px;padding:0 16px;background:rgba(11,9,24,.86);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line)}
+.brand{font-family:'Noto Serif TC',serif;font-weight:900;font-size:17px;color:var(--gold);letter-spacing:2px}
+.brand .ver{font-size:10px;color:var(--muted2);margin-left:6px;letter-spacing:0}
+.topdate{font-size:11.5px;color:var(--muted);text-align:right;line-height:1.4}
+.eyebrow{font-size:11px;letter-spacing:.28em;color:var(--muted2);text-transform:uppercase;margin:22px 0 6px}
+h2.title{font-family:'Noto Serif TC',serif;font-weight:900;font-size:22px;color:var(--text);margin:0 0 12px;letter-spacing:1px}
+.card{background:linear-gradient(165deg,var(--panel2),var(--panel));border:1px solid var(--line);
+  border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:inset 0 1px 0 rgba(244,220,168,.06)}
+.goldline{height:1px;margin:18px 0;position:relative;
+  background:linear-gradient(90deg,transparent,rgba(231,197,125,.4),#F4DCA8,rgba(231,197,125,.4),transparent)}
+.goldline::after{content:"◆";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  font-size:8px;color:var(--gold);background:var(--bg);padding:0 6px}
+.note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold-d);
+  border-radius:12px;padding:10px 13px;font-size:12.5px;color:var(--muted);margin-bottom:12px}
+button{font-family:inherit}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;cursor:pointer;
+  border-radius:12px;padding:11px 18px;font-size:14px;font-weight:700;letter-spacing:1px}
+.btn-g{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#241a06}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line2)}
+/* ---- 燈號 ---- */
+.lt{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none;vertical-align:middle}
+.lt-綠{background:var(--lt-good);box-shadow:0 0 8px rgba(107,203,158,.6)}
+.lt-黃{background:var(--lt-flat);box-shadow:0 0 7px rgba(231,197,125,.35)}
+.lt-紅{background:var(--lt-bad);box-shadow:0 0 9px rgba(224,106,80,.6);animation:ltp 2s ease-in-out infinite}
+@keyframes ltp{0%,100%{opacity:1}50%{opacity:.55}}
+.lt.hollow{background:transparent!important;border:2px solid currentColor;animation:none}
+.lt.hollow.lt-綠{color:var(--lt-good)}.lt.hollow.lt-黃{color:var(--lt-flat)}.lt.hollow.lt-紅{color:var(--lt-bad)}
+@media (prefers-reduced-motion:reduce){.lt-紅{animation:none}}
+/* ---- 首頁成員卡 ---- */
+.memgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.memcard{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:linear-gradient(165deg,var(--panel2),var(--panel));border:1px solid var(--line);
+  border-radius:18px;padding:16px 10px 13px;cursor:pointer;text-align:center;color:var(--text)}
+.memcard:active{transform:scale(.97)}
+.avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:28px;background:var(--raise);position:relative;
+  border:none;padding:3px;
+  background:conic-gradient(from 210deg,#C7A45B,#F4DCA8,#8a6f3a,#E7C57D,#C7A45B)}
+.avatar>i{width:100%;height:100%;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;font-style:normal}
+.memcard .lt{position:absolute;right:calc(50% - 34px);bottom:38px;width:14px;height:14px;border:2px solid var(--bg)}
+.memcard .lt.hollow{border-width:2px}
+.mname{font-family:'Noto Serif TC',serif;font-weight:900;font-size:15px}
+.mstar{font-size:11px;color:var(--gold-d)}
+.mflag{font-size:10px;color:var(--muted2)}
+.mflag.warn{color:var(--lt-flat)}
+/* ---- 個人頁 ---- */
+.backbar{display:flex;align-items:center;gap:8px;margin:14px 0 4px}
+.backbtn{background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:10px;padding:6px 12px;font-size:12px;cursor:pointer}
+.hero{display:flex;align-items:center;gap:14px;margin:12px 0 16px}
+.hero .avatar{width:72px;height:72px;font-size:36px}
+.hname{font-family:'Noto Serif TC',serif;font-weight:900;font-size:24px;letter-spacing:2px}
+.hsub{font-size:12px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;border:1px solid var(--line2);
+  color:var(--muted);border-radius:20px;padding:2px 10px;margin-right:5px}
+.chip.gold{color:var(--gold);border-color:var(--gold-d)}
+.banner-warn{background:rgba(231,197,125,.1);border:1px solid rgba(231,197,125,.45);color:var(--gold-b);
+  border-radius:12px;padding:9px 13px;font-size:12px;margin-bottom:12px}
+.banner-gray{background:rgba(161,154,200,.1);border:1px solid var(--line2);color:var(--muted);
+  border-radius:12px;padding:8px 13px;font-size:11.5px;margin:10px 0}
+.sum3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.sum3 .s{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center}
+.sum3 .k{font-size:10px;color:var(--muted2);letter-spacing:.15em}
+.sum3 .v{font-family:'Noto Serif TC',serif;font-weight:900;font-size:14px;color:var(--gold);margin-top:2px}
+.layercard{margin-bottom:14px}
+.layerhead{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.layerhead .t{font-family:'Noto Serif TC',serif;font-weight:900;font-size:16px;color:var(--gold)}
+.layerhead .s{font-size:11px;color:var(--muted2)}
+.hitline{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px dashed var(--line);font-size:13px}
+.hitline:first-of-type{border-top:none}
+.hitline .hua{flex:none;font-family:'Noto Serif TC',serif;font-weight:900;font-size:13px;width:34px;text-align:center;border-radius:8px;padding:1px 0}
+.hua-祿{color:#6BCB9E;border:1px solid rgba(107,203,158,.4)}
+.hua-權{color:#9C7CF0;border:1px solid rgba(156,124,240,.4)}
+.hua-科{color:#5FB9DD;border:1px solid rgba(95,185,221,.4)}
+.hua-忌{color:#E06A50;border:1px solid rgba(224,106,80,.4)}
+.hitline .tx{color:var(--text)}
+.hitline .src{font-size:10.5px;color:var(--muted2)}
+.dimcard{border-left:3px solid var(--line2);border-radius:14px;background:var(--panel);
+  padding:11px 13px;margin-bottom:9px}
+.dimcard.d-事業{border-left-color:var(--dim-career)}
+.dimcard.d-財運{border-left-color:var(--dim-wealth)}
+.dimcard.d-外出{border-left-color:var(--dim-travel)}
+.dimcard.d-朋友{border-left-color:var(--dim-friend)}
+.dimcard.d-健康{border-left-color:var(--dim-health)}
+.dimcard.d-嚴重忌{border-left-color:var(--dim-ji)}
+.dimhead{display:flex;align-items:center;gap:8px}
+.dimhead .nm{font-family:'Noto Serif TC',serif;font-weight:900;font-size:15px}
+.dimhead .pl{font-size:10.5px;color:var(--muted2)}
+.dimhead .sc{margin-left:auto;font-size:11px;color:var(--muted2)}
+.dimtext{font-family:var(--kai);font-size:15px;color:var(--gold-b);margin-top:5px}
+.dimcard.severe-red{background:rgba(224,106,80,.08);border:1px solid rgba(224,106,80,.4);border-left:3px solid var(--dim-ji)}
+.capnote{font-size:11px;color:var(--muted2);margin-top:4px}
+/* ---- admin panel 表單 ---- */
+.frow{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px}
+.frow label{flex:none;width:74px;color:var(--muted);font-size:12px}
+.frow input[type=text],.frow input[type=date],.frow input[type=number],.frow select,.frow textarea{
+  flex:1;background:#0E0C1A;border:1px solid var(--line2);border-radius:8px;color:var(--text);
+  padding:9px 10px;font-size:13px;outline:none;font-family:inherit;min-width:0}
+.frow input:focus,.frow select:focus{border-color:var(--gold)}
+.seg{display:flex;gap:6px;flex:1}
+.seg button{flex:1;background:#0E0C1A;border:1px solid var(--line2);color:var(--muted);border-radius:8px;padding:8px 0;font-size:12px;cursor:pointer}
+.seg button.on{background:var(--raise);border-color:var(--gold-d);color:var(--gold)}
+.mlist{list-style:none;padding:0;margin:10px 0}
+.mlist li{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+  border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:13px}
+.mlist .grow{flex:1}
+.mlist button{background:var(--raise);border:1px solid var(--line2);color:var(--gold);border-radius:8px;padding:5px 12px;font-size:11.5px;cursor:pointer}
+.footer{margin-top:26px;text-align:center;font-size:11px;color:var(--muted2);line-height:1.9}
+.empty{text-align:center;color:var(--muted2);padding:40px 10px;font-size:13.5px}
+.toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);opacity:0;
+  background:var(--raise);border:1px solid var(--line2);color:var(--text);border-radius:12px;
+  padding:10px 18px;font-size:13px;z-index:12000;transition:.25s;pointer-events:none;max-width:86vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+
+<!-- USLED AUTH BEGIN(家庭權限版) -->
+<style>
+body.auth-checking > *:not(#auth-overlay):not(#updbar):not(script),
+body.auth-needed   > *:not(#auth-login):not(#updbar):not(script),
+body.auth-denied   > *:not(#auth-denied):not(#updbar):not(script){display:none!important}
+#updbar{display:none;position:fixed;top:0;left:0;right:0;z-index:11000;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#C7A45B,#E7C57D);color:#241a06;font-weight:700;font-size:13px;padding:11px 16px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.45);font-family:'Noto Sans TC',sans-serif}
+#updbar:active{filter:brightness(1.05)}
+body.auth-checking #auth-overlay,
+body.auth-needed   #auth-login,
+body.auth-denied   #auth-denied{display:flex}
+#auth-overlay,#auth-login,#auth-denied{
+  position:fixed;inset:0;background:#0B0918;color:#EFEBFA;
+  z-index:10000;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:18px;padding:30px;
+  font-family:'Noto Sans TC',sans-serif;
+}
+.auth-card{
+  background:linear-gradient(160deg,#221D42,#1A1633);border:1px solid #453C78;border-radius:16px;
+  padding:34px 26px;max-width:380px;width:100%;text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+}
+.auth-title{font-family:'Noto Serif TC',serif;font-size:22px;font-weight:900;color:#E7C57D;letter-spacing:3px;margin-bottom:8px}
+.auth-sub{font-size:13px;color:#A19AC8;margin-bottom:20px;line-height:1.8}
+.auth-email{font-size:12px;color:#EFEBFA;background:#0B0918;padding:9px 12px;border-radius:8px;margin:10px 0;word-break:break-all}
+.auth-btn{
+  background:#fff;color:#333;border:1px solid #dadce0;border-radius:8px;
+  padding:12px 18px;font-size:14px;font-weight:500;cursor:pointer;
+  display:inline-flex;align-items:center;gap:10px;min-height:48px;
+  font-family:'Noto Sans TC',sans-serif;
+}
+.auth-btn:hover{background:#f8f9fa}
+.auth-btn svg{width:18px;height:18px}
+.auth-btn-ghost{
+  background:transparent;color:#A19AC8;border:1px solid #453C78;
+  padding:9px 14px;font-size:12px;border-radius:8px;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;margin-top:8px;
+}
+.auth-err{font-size:12px;color:#E06A50;margin-top:10px;min-height:16px}
+.auth-spinner{
+  width:34px;height:34px;border:3px solid #453C78;border-top-color:#E7C57D;
+  border-radius:50%;animation:authspin 0.8s linear infinite;
+}
+@keyframes authspin{to{transform:rotate(360deg)}}
+#admin-fab{
+  display:none;position:fixed;bottom:20px;right:16px;z-index:8000;
+  background:#E7C57D;color:#241a06;border:none;border-radius:50px;
+  padding:10px 16px;font-size:12px;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 14px rgba(231,197,125,.4);
+  font-family:'Noto Sans TC',sans-serif;letter-spacing:1px;
+}
+body.is-admin #admin-fab{display:inline-flex;align-items:center;gap:6px}
+#admin-fab:active{transform:scale(.96)}
+#admin-panel{
+  position:fixed;inset:0;background:rgba(6,5,14,.78);z-index:9500;
+  display:none;align-items:flex-start;justify-content:center;padding:20px;overflow:auto;
+}
+#admin-panel.show{display:flex}
+.admin-card{
+  background:linear-gradient(180deg,#120F24,#1A1633);border:1px solid #453C78;border-radius:16px;
+  padding:22px;max-width:480px;width:100%;margin:14px 0;
+  font-family:'Noto Sans TC',sans-serif;
+}
+.admin-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.admin-head-title{font-size:15px;font-weight:700;color:#E7C57D;letter-spacing:1px}
+.admin-tip{font-size:11px;color:#A19AC8;margin-bottom:12px;line-height:1.7}
+.admin-list{list-style:none;padding:0;margin:12px 0;max-height:220px;overflow:auto}
+.admin-list li{
+  display:flex;justify-content:space-between;align-items:center;
+  background:#221D42;padding:9px 12px;border-radius:8px;margin-bottom:5px;font-size:12px;gap:8px;
+}
+.admin-list .em{flex:1;word-break:break-all;color:#EFEBFA}
+.admin-list .em-admin{color:#E7C57D}
+.admin-list .del-btn{
+  background:#E06A50;color:#fff;border:none;border-radius:6px;
+  padding:5px 10px;font-size:11px;cursor:pointer;flex-shrink:0;
+}
+.admin-add{display:flex;gap:6px;margin-top:10px}
+.admin-add input{
+  flex:1;background:#0B0918;border:1px solid #453C78;border-radius:8px;
+  color:#EFEBFA;padding:10px 12px;font-size:13px;outline:none;
+}
+.admin-add input:focus{border-color:#E7C57D}
+.admin-add button{
+  background:#E7C57D;color:#241a06;border:none;border-radius:8px;
+  padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;
+  font-family:'Noto Sans TC',sans-serif;
+}
+.admin-empty{color:#78719D;font-size:12px;text-align:center;padding:14px;font-style:italic}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  var firebaseConfig = {
+    apiKey: "AIzaSyB-MgbNVlC5Cc_qM411zb2y3tB833kQ9VI",
+    authDomain: "ziwei-learn.firebaseapp.com",
+    projectId: "ziwei-learn",
+    storageBucket: "ziwei-learn.firebasestorage.app",
+    messagingSenderId: "39677127175",
+    appId: "1:39677127175:web:f53beab40eca1c8aba98a2"
+  };
+  var ADMIN_EMAIL = 'covernself@gmail.com';
+
+  firebase.initializeApp(firebaseConfig);
+  var fbAuth = firebase.auth();
+  var fbDb   = firebase.firestore();
+
+  function setState(s){
+    document.body.classList.remove('auth-checking','auth-needed','auth-denied','auth-ok');
+    document.body.classList.add(s);
+  }
+
+  window.USLED_AUTH = {
+    user:null,
+    signIn:function(){
+      var errEl = document.getElementById('auth-err');
+      if(errEl) errEl.textContent='';
+      var provider = new firebase.auth.GoogleAuthProvider();
+      fbAuth.signInWithPopup(provider).catch(function(e){
+        if(errEl) errEl.textContent='登入失敗: '+(e.message||e.code||'未知錯誤');
+      });
+    },
+    signOut:function(){
+      /* 登出清家人快取(個資防護) */
+      try{
+        Object.keys(localStorage).forEach(function(k){
+          if(k.indexOf('fz_')===0) localStorage.removeItem(k);
+        });
+      }catch(e){}
+      fbAuth.signOut().then(function(){ location.reload(); });
+    }
+  };
+
+  fbAuth.onAuthStateChanged(function(user){
+    if(!user){ setState('auth-needed'); return; }
+    USLED_AUTH.user = user;
+    setState('auth-checking');
+    var email = (user.email||'').toLowerCase();
+    if(email === ADMIN_EMAIL){
+      document.body.classList.add('is-admin');
+      setState('auth-ok');
+      if(window.FZ && FZ.boot) FZ.boot();
+      return;
+    }
+    /* 家庭權限:allowed_emails/{email}.family === true 才放行 */
+    fbDb.collection('allowed_emails').doc(email).get().then(function(doc){
+      if(doc.exists && doc.data().family === true){
+        setState('auth-ok');
+        if(window.FZ && FZ.boot) FZ.boot();
+      } else {
+        var d = document.getElementById('auth-denied-email');
+        if(d) d.textContent = user.email;
+        setState('auth-denied');
+      }
+    }).catch(function(e){
+      var d = document.getElementById('auth-denied-email');
+      if(d) d.textContent = (user.email||'')+' (檢查失敗: '+(e.message||e.code)+')';
+      setState('auth-denied');
+    });
+  });
+})();
+</script>
+<!-- USLED AUTH END -->
+<script src="https://cdn.jsdelivr.net/npm/iztro@2.5.8/dist/iztro.min.js"></script>
+<script src="shared/score.js"></script>
+</head>
+<body class="auth-checking">
+<div id="updbar"><span>🔄 有新版本 · 點我更新</span></div>
+
+<!-- USLED AUTH HTML BEGIN -->
+<div id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-title">家庭命盤中心</div>
+    <div class="auth-sub">驗證中…</div>
+    <div class="auth-spinner" style="margin:14px auto 4px"></div>
+  </div>
+</div>
+<div id="auth-login">
+  <div class="auth-card">
+    <div class="auth-title">家庭命盤中心</div>
+    <div class="auth-sub">此為家庭私人頁面<br>請使用獲授權的 Google 帳號登入</div>
+    <button class="auth-btn" onclick="USLED_AUTH.signIn()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      使用 Google 帳號登入
+    </button>
+    <div class="auth-err" id="auth-err"></div>
+  </div>
+</div>
+<div id="auth-denied">
+  <div class="auth-card">
+    <div class="auth-title" style="color:#E06A50">此為家庭私人頁面</div>
+    <div class="auth-sub">您的帳號未獲家庭授權<br>如需存取請聯繫管理員</div>
+    <div class="auth-email" id="auth-denied-email">—</div>
+    <button class="auth-btn-ghost" onclick="USLED_AUTH.signOut()">登出並換帳號</button>
+  </div>
+</div>
+<button id="admin-fab" onclick="FZ.openAdmin()">⚙️ 成員管理</button>
+<div id="admin-panel">
+  <div class="admin-card">
+    <div class="admin-head">
+      <div class="admin-head-title">家庭成員管理</div>
+      <button class="auth-btn-ghost" style="margin:0" onclick="FZ.closeAdmin()">關閉</button>
+    </div>
+    <div id="admin-body"></div>
+  </div>
+</div>
+<!-- USLED AUTH HTML END -->
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">家庭命盤中心<span class="ver" id="verTag"></span></div>
+    <div class="topdate" id="topdate"></div>
+  </header>
+  <div id="offbar"></div>
+  <main id="view"></main>
+  <div class="footer">
+    本頁內容為紫微斗數作息提醒,非醫療/投資建議 ·
+    <a href="javascript:USLED_AUTH.signOut()" style="color:var(--muted2)">登出</a><br>
+    <span id="verFoot" style="color:var(--gold-d)"></span>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   家庭命盤中心 · Phase 1(文字版)
+   評分引擎=shared/score.js(ZWSCORE)、文案=shared/rules.json
+   ============================================================ */
+var APP_VERSION = "v0.1.0";
+
+/* ---------- 小工具 ---------- */
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function $(q){return document.querySelector(q);}
+var toastT=null;
+function toast(msg){var el=$("#toast");el.textContent=msg;el.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){el.classList.remove("show");},2200);}
+function pad2(n){return (n<10?"0":"")+n;}
+function ymd(d){return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
+
+/* ---------- 常數 ---------- */
+var SHICHEN=[["早子時","00:00–00:59",0],["丑時","01:00–02:59",1],["寅時","03:00–04:59",2],["卯時","05:00–06:59",3],["辰時","07:00–08:59",4],["巳時","09:00–10:59",5],["午時","11:00–12:59",6],["未時","13:00–14:59",7],["申時","15:00–16:59",8],["酉時","17:00–18:59",9],["戌時","19:00–20:59",10],["亥時","21:00–22:59",11],["晚子時","23:00–23:59",12]];
+var RELATION_ZH={self:"本人",spouse:"配偶",child:"子女",mother:"母親",mother_in_law:"岳母/婆婆"};
+var MEMBER_IDS=["jason","wife","child1","child2","child3","child4","mother","mother_in_law"];
+var HUA_KEYS=["lu","quan","ke","ji"];
+var HUA_ZH={lu:"祿",quan:"權",ke:"科",ji:"忌"};
+var PALACE_DIM={"官祿":"事業","財帛":"財運","遷移":"外出","交友":"朋友","疾厄":"健康"};
+/* 化星落命宮 → 個人一句(v1 自補文案;非 rules.json 50 條範圍) */
+var MING_LINE={lu:"今天整體順風,想做的事放膽推進一步。",quan:"今天幹勁足,適合主動出擊,語氣放軟效果更好。",ke:"今天形象加分,適合露臉、發表、見重要的人。",ji:"今天心緒偏緊,步調放慢,大決定睡一晚再說。"};
+var FALLBACK_TEXT="今日此面向平順,照常安排即可。";
+var CACHE_KEY="fz_members_cache";
+
+/* ---------- 狀態 ---------- */
+var MEMBERS=[];        /* Firestore family_members */
+var OFFLINE=false;     /* 走離線快取 */
+var SYNCED_AT=null;
+var RULES=null;        /* shared/rules.json */
+var CHARTS={};         /* memberId -> iztro astrolabe */
+var DAY_MEMO={};       /* memberId|date -> computeScores 結果 */
+var HORO_MEMO={};      /* memberId|date -> horoscope 摘要 */
+var CAP_MEMO={};       /* memberId|YYYY-MM -> {date:{light,capped,F}} */
+var VIEW_DATE=(function(){
+  var m=(location.search||"").match(/[?&]d=(\d{4}-\d{2}-\d{2})/);
+  if(m){var d=new Date(m[1]+"T12:00:00");if(!isNaN(d))return m[1];}
+  return ymd(new Date());
+})();
+
+/* ---------- 資料層 ---------- */
+function db(){return firebase.firestore();}
+function saveCache(list){
+  try{localStorage.setItem(CACHE_KEY,JSON.stringify({data:list,syncedAt:Date.now()}));}catch(e){}
+}
+function loadCache(){
+  try{var o=JSON.parse(localStorage.getItem(CACHE_KEY));if(o&&o.data)return o;}catch(e){}
+  return null;
+}
+function fetchMembers(){
+  return db().collection("family_members").orderBy("order").get().then(function(snap){
+    var list=[];
+    snap.forEach(function(doc){var d=doc.data();d.id=doc.id;list.push(d);});
+    MEMBERS=list;OFFLINE=false;SYNCED_AT=Date.now();
+    saveCache(list);
+  });
+}
+function useCacheOrFail(){
+  var c=loadCache();
+  if(c){MEMBERS=c.data;OFFLINE=true;SYNCED_AT=c.syncedAt;return true;}
+  return false;
+}
+function loadRules(){
+  return fetch("shared/rules.json?v="+encodeURIComponent(APP_VERSION),{cache:"no-store"})
+    .then(function(r){return r.json();})
+    .then(function(j){RULES=j;});
+}
+
+/* ---------- 排盤層(iztro) ---------- */
+function chartOf(m){
+  if(CHARTS[m.id])return CHARTS[m.id];
+  if(typeof iztro==="undefined")return null;
+  var g=(m.gender==="F")?"女":"男";
+  var ti=(typeof m.birthHour==="number")?m.birthHour:parseInt(m.birthHour,10)||0;
+  var a;
+  try{
+    a=(m.calendar==="lunar")
+      ? iztro.astro.byLunar(m.birthDate,ti,g,!!m.isLeapMonth,true,"zh-TW")
+      : iztro.astro.bySolar(m.birthDate,ti,g,true,"zh-TW");
+  }catch(e){console.warn("排盤失敗",m.id,e);return null;}
+  CHARTS[m.id]=a;
+  return a;
+}
+function palacesInput(a){
+  return a.palaces.map(function(p){
+    return {name:p.name,stars:[].concat(p.majorStars,p.minorStars,p.adjectiveStars).map(function(s){return s.name;})};
+  });
+}
+function horoOf(m,dateStr){
+  var key=m.id+"|"+dateStr;
+  if(HORO_MEMO[key])return HORO_MEMO[key];
+  var a=chartOf(m);if(!a)return null;
+  var h;
+  try{h=a.horoscope(dateStr);}catch(e){console.warn("horoscope失敗",m.id,e);return null;}
+  var o={
+    decadal:{stem:h.decadal.heavenlyStem,branch:h.decadal.earthlyBranch},
+    yearly:{stem:h.yearly.heavenlyStem,branch:h.yearly.earthlyBranch},
+    monthly:{stem:h.monthly.heavenlyStem,branch:h.monthly.earthlyBranch},
+    daily:{stem:h.daily.heavenlyStem,branch:h.daily.earthlyBranch},
+    lunarDate:h.lunarDate||""
+  };
+  HORO_MEMO[key]=o;
+  return o;
+}
+function scoresOf(m,dateStr){
+  var key=m.id+"|"+dateStr;
+  if(DAY_MEMO[key])return DAY_MEMO[key];
+  var a=chartOf(m);if(!a)return null;
+  var h=horoOf(m,dateStr);if(!h)return null;
+  var natalStem=(a.rawDates&&a.rawDates.chineseDate&&a.rawDates.chineseDate.yearly)?a.rawDates.chineseDate.yearly[0]:null;
+  var r=ZWSCORE.computeScores({
+    palaces:palacesInput(a),
+    stems:{natal:natalStem,decadal:h.decadal.stem,yearly:h.yearly.stem,monthly:h.monthly.stem,daily:h.daily.stem}
+  });
+  DAY_MEMO[key]=r;
+  return r;
+}
+/* 日總燈=六維(含嚴重忌)最差;F 用嚴重忌 F */
+var LIGHT_RANK={"綠":0,"黃":1,"紅":2};
+function dayOverall(r){
+  var worst="綠",F=0;
+  r.dims.forEach(function(d){
+    if(LIGHT_RANK[d.light]>LIGHT_RANK[worst])worst=d.light;
+    if(d.dim==="嚴重忌")F=d.F;
+  });
+  return {light:worst,F:F};
+}
+/* 單人單月封頂表(防疲勞:實作在 score.js,此處組月資料) */
+function monthCap(m,ymStr){
+  var key=m.id+"|"+ymStr;
+  if(CAP_MEMO[key])return CAP_MEMO[key];
+  var parts=ymStr.split("-"),y=+parts[0],mo=+parts[1];
+  var last=new Date(y,mo,0).getDate();
+  var days=[];
+  for(var d=1;d<=last;d++){
+    var ds=y+"-"+pad2(mo)+"-"+pad2(d);
+    var r=scoresOf(m,ds);
+    if(!r){days.push({date:ds,light:"綠",F:0});continue;}
+    var o=dayOverall(r);
+    days.push({date:ds,light:o.light,F:o.F});
+  }
+  var capped=ZWSCORE.applyFatigueCap(days);
+  var map={};
+  capped.forEach(function(d){map[d.date]={light:d.light,capped:d.capped,F:d.F};});
+  CAP_MEMO[key]=map;
+  return map;
+}
+function todayLightOf(m,dateStr){
+  var cap=monthCap(m,dateStr.slice(0,7));
+  return cap[dateStr]||{light:"綠",capped:false,F:0};
+}
+
+/* ---------- 文案層(rules.json) ---------- */
+function pickRule(dim,huaZh,seed){
+  if(!RULES)return null;
+  var cands=RULES.rules.filter(function(r){
+    return r.dim===dim&&r.trigger.hua===huaZh&&(!r.trigger.stack||r.trigger.stack.length===0);
+  });
+  if(!cands.length)return null;
+  return cands[seed%cands.length];
+}
+function severeRuleOf(stack){
+  if(!RULES||!stack)return null;
+  var want=JSON.stringify(stack.stack);
+  var exact=null,any=null;
+  RULES.rules.forEach(function(r){
+    if(r.dim!=="嚴重忌")return;
+    if(JSON.stringify(r.trigger.stack)!==want)return;
+    if(r.trigger.palace===stack.palace)exact=r;
+    if(r.trigger.palace==="任一")any=r;
+  });
+  return exact||any;
+}
+/* 該層四化命中清單:[{hua,star,palace,dim,rule,mingLine}] */
+function layerHits(m,stem,seed){
+  var out=[];
+  var a=chartOf(m);if(!a||!stem)return out;
+  var gh=ZWSCORE.GANHUA[stem];if(!gh)return out;
+  var starPal={};
+  palacesInput(a).forEach(function(p){
+    var pn=ZWSCORE.normPalace(p.name);
+    p.stars.forEach(function(s){starPal[s]=pn;});
+  });
+  HUA_KEYS.forEach(function(hk){
+    var star=gh[hk],pn=starPal[star];
+    if(!pn)return;
+    var huaZh=HUA_ZH[hk];
+    if(PALACE_DIM[pn]){
+      var rule=pickRule(PALACE_DIM[pn],huaZh,seed);
+      out.push({hua:huaZh,star:star,palace:pn,dim:PALACE_DIM[pn],rule:rule});
+    }else if(pn==="命宮"){
+      out.push({hua:huaZh,star:star,palace:pn,dim:"個人",mingLine:MING_LINE[hk]});
+    }
+    /* 其餘宮 v1 不顯示(田宅凶象由嚴重忌疊法承接) */
+  });
+  return out;
+}
+
+/* ---------- 視圖 ---------- */
+function lightDot(light,hollow,size){
+  return '<span class="lt lt-'+light+(hollow?' hollow':'')+'"'+(size?' style="width:'+size+'px;height:'+size+'px"':'')+'></span>';
+}
+function offbarHtml(){
+  if(!OFFLINE)return "";
+  var t=SYNCED_AT?new Date(SYNCED_AT):null;
+  var ts=t?(t.getMonth()+1)+"/"+t.getDate()+" "+pad2(t.getHours())+":"+pad2(t.getMinutes()):"—";
+  return '<div class="banner-gray">📴 離線資料 · 上次同步 '+esc(ts)+' · 連線恢復後重新整理即可更新</div>';
+}
+function renderTopdate(){
+  var d=new Date(VIEW_DATE+"T12:00:00");
+  var wd=["日","一","二","三","四","五","六"][d.getDay()];
+  $("#topdate").innerHTML=esc(VIEW_DATE.replace(/-/g,"/"))+"(週"+wd+")";
+}
+function route(){
+  var h=location.hash||"";
+  var m=h.match(/^#p\/([a-z0-9_]+)$/);
+  $("#offbar").innerHTML=offbarHtml();
+  if(m)renderPerson(m[1]);
+  else renderHome();
+}
+/* ----- 首頁:8 成員卡 ----- */
+function renderHome(){
+  var v=$("#view");
+  if(!MEMBERS.length){
+    v.innerHTML='<div class="eyebrow">家庭 · 今日</div><h2 class="title">家人總覽</h2>'+
+      '<div class="empty">尚未建立成員,請管理員新增</div>';
+    return;
+  }
+  var cards=MEMBERS.map(function(m){
+    return '<div class="memcard" id="mc-'+esc(m.id)+'" onclick="location.hash=\'#p/'+esc(m.id)+'\'">'+
+      '<div class="avatar"><i>'+esc(m.avatar||"☆")+'</i></div>'+
+      '<span class="lt" id="lt-'+esc(m.id)+'" style="background:var(--raise)"></span>'+
+      '<div class="mname">'+esc(m.name)+'</div>'+
+      '<div class="mstar" id="ms-'+esc(m.id)+'">排盤中…</div>'+
+      (m.hourConfidence==="unknown"?'<div class="mflag warn">⚠ 時辰未確認</div>'
+        :m.hourConfidence==="approx"?'<div class="mflag">時辰為推估</div>':"")+
+      '</div>';
+  }).join("");
+  v.innerHTML='<div class="eyebrow">家庭 · 今日</div><h2 class="title">家人總覽</h2>'+
+    '<div class="memgrid">'+cards+'</div>'+
+    '<div class="note" style="margin-top:14px">點成員卡查看個人六維建議。燈號:'+
+    lightDot("綠")+' 吉 '+lightDot("黃")+' 平 '+lightDot("紅")+' 留意;空心=時辰未確認,僅供參考。</div>';
+  /* 逐人非同步算今日燈(整月+封頂),避免卡 UI */
+  var i=0;
+  (function next(){
+    if(i>=MEMBERS.length)return;
+    var m=MEMBERS[i++];
+    try{
+      var a=chartOf(m);
+      var msEl=$("#ms-"+m.id),ltEl=$("#lt-"+m.id);
+      if(!a){
+        if(msEl)msEl.textContent=(typeof iztro==="undefined")?"引擎未載入,請重整":"資料有誤";
+        if(ltEl)ltEl.outerHTML=lightDot("黃",true);
+      }else{
+        var ming=a.palaces.filter(function(p){return ZWSCORE.normPalace(p.name)==="命宮";})[0];
+        var stars=ming&&ming.majorStars.length?ming.majorStars.map(function(s){return s.name;}).join("·"):"(借對宮)";
+        if(msEl)msEl.textContent="命宮 "+stars;
+        var tl=todayLightOf(m,VIEW_DATE);
+        if(ltEl)ltEl.outerHTML='<span class="lt lt-'+tl.light+(m.hourConfidence==="unknown"?" hollow":"")+'" id="lt-'+esc(m.id)+'"></span>';
+      }
+    }catch(e){console.warn("成員卡計算失敗",m.id,e);}
+    setTimeout(next,0);
+  })();
+}
+/* ----- 個人頁 ----- */
+function renderPerson(id){
+  var m=null;
+  MEMBERS.forEach(function(x){if(x.id===id)m=x;});
+  var v=$("#view");
+  if(!m){v.innerHTML='<div class="empty">找不到這位成員</div><button class="backbtn" onclick="location.hash=\'\'">← 回首頁</button>';return;}
+  var a=chartOf(m);
+  var head='<div class="backbar"><button class="backbtn" onclick="location.hash=\'\'">← 回首頁</button></div>';
+  if(!a){
+    v.innerHTML=head+'<div class="empty">'+((typeof iztro==="undefined")?"排盤引擎載入失敗,請檢查網路後重新整理":"出生資料有誤,請管理員修正")+'</div>';
+    return;
+  }
+  var unknown=(m.hourConfidence==="unknown");
+  var approx=(m.hourConfidence==="approx");
+  var ming=a.palaces.filter(function(p){return ZWSCORE.normPalace(p.name)==="命宮";})[0];
+  var body=a.palaces.filter(function(p){return p.isBodyPalace;})[0];
+  var mingStars=ming&&ming.majorStars.length?ming.majorStars.map(function(s){return s.name;}).join("·"):"(借對宮)";
+  var h=horoOf(m,VIEW_DATE);
+  var r=scoresOf(m,VIEW_DATE);
+  var tl=todayLightOf(m,VIEW_DATE);
+  var seedD=parseInt(VIEW_DATE.slice(8,10),10);
+  var seedM=parseInt(VIEW_DATE.slice(5,7),10);
+  var seedY=parseInt(VIEW_DATE.slice(0,4),10);
+
+  var html=head;
+  html+='<div class="hero">'+
+    '<div class="avatar"><i>'+esc(m.avatar||"☆")+'</i></div>'+
+    '<div><div class="hname">'+esc(m.name)+'</div>'+
+    '<div class="hsub">'+esc(RELATION_ZH[m.relation]||m.relation||"")+'</div>'+
+    '<div style="margin-top:6px"><span class="chip gold">'+esc(mingStars)+'</span>'+
+    '<span class="chip">今日 '+lightDot(tl.light,unknown)+' '+tl.light+'燈</span></div></div></div>';
+  if(unknown){
+    html+='<div class="banner-warn">⚠ 時辰未確認——命宮身宮與時系星可能不準,結果僅供參考。確認後請管理員更新。</div>';
+  }else if(approx){
+    html+='<div class="banner-warn" style="opacity:.8">時辰為推估,結果供參考。</div>';
+  }
+  if(tl.capped){
+    html+='<div class="banner-gray">本月紅燈已達 '+ZWSCORE.RED_CAP_PER_MONTH+' 天上限,今日依防疲勞規則以黃燈顯示。</div>';
+  }
+  /* 本命摘要 */
+  html+='<div class="sum3">'+
+    '<div class="s"><div class="k">命宮主星</div><div class="v">'+esc(mingStars)+'</div></div>'+
+    '<div class="s"><div class="k">五行局</div><div class="v">'+esc(a.fiveElementsClass||"—")+'</div></div>'+
+    '<div class="s"><div class="k">身宮</div><div class="v">'+esc(body?ZWSCORE.normPalace(body.name):"—")+'</div></div></div>';
+
+  /* 流年卡 / 流月卡 */
+  if(h){
+    html+=layerCardHtml(m,"流年",seedY+"",h.yearly,seedY);
+    html+=layerCardHtml(m,"流月",VIEW_DATE.slice(0,7).replace("-","/"),h.monthly,seedM);
+  }
+  /* 流日六維卡 */
+  html+='<div class="goldline"></div>';
+  html+='<div class="layerhead"><span class="t">流日 · 六維</span><span class="s">'+esc(VIEW_DATE.replace(/-/g,"/"))+(h&&h.daily.stem?' · '+esc(h.daily.stem)+esc(h.daily.branch)+'日':"")+'</span></div>';
+  if(r&&h){
+    var dHits={};
+    layerHits(m,h.daily.stem,seedD).forEach(function(hit){
+      if(hit.dim==="個人"){
+        html+='<div class="dimcard" style="border-left-color:var(--gold-d)"><div class="dimhead"><span class="nm">個人</span><span class="pl">命宮 · 化'+esc(hit.hua)+'('+esc(hit.star)+')</span></div>'+
+          '<div class="dimtext">'+esc(hit.mingLine||"")+'</div></div>';
+        return;
+      }
+      /* 同維多化:忌優先,其餘保留首見 */
+      if(!dHits[hit.dim]||hit.hua==="忌")dHits[hit.dim]=hit;
+    });
+    r.dims.forEach(function(d){
+      if(d.dim==="嚴重忌")return;
+      var hit=dHits[d.dim];
+      var text=hit?(hit.rule?hit.rule.text:FALLBACK_TEXT):FALLBACK_TEXT;
+      html+='<div class="dimcard d-'+esc(d.dim)+'">'+
+        '<div class="dimhead">'+lightDot(d.light,unknown)+'<span class="nm">'+esc(d.dim)+'</span>'+
+        '<span class="pl">'+esc(d.palace)+'宮'+(hit?' · 化'+esc(hit.hua)+'('+esc(hit.star)+')':"")+'</span>'+
+        '<span class="sc">S '+(d.score>0?"+":"")+esc(d.score)+' · F '+esc(d.F)+'</span></div>'+
+        '<div class="dimtext">'+esc(text)+'</div></div>';
+    });
+    /* 嚴重忌 */
+    var sev=r.dims.filter(function(d){return d.dim==="嚴重忌";})[0];
+    if(sev&&sev.palace&&sev.F>0){
+      var srule=r.severe?severeRuleOf(r.severe.stack):null;
+      var stext=srule?srule.text:("今日忌象集中在"+sev.palace+"宮:大事緩一緩,先做例行事,明天再衝。");
+      html+='<div class="dimcard d-嚴重忌'+(sev.light==="紅"?" severe-red":"")+'">'+
+        '<div class="dimhead">'+lightDot(sev.light,unknown)+'<span class="nm">嚴重忌</span>'+
+        '<span class="pl">'+esc(sev.palace)+'宮(全盤 F 最大)</span>'+
+        '<span class="sc">F '+esc(sev.F)+'</span></div>'+
+        '<div class="dimtext">'+esc(stext)+'</div>'+
+        (r.severe&&r.severe.stack?'<div class="capnote">疊法:'+esc(r.severe.stack.stack.join(" + "))+' @ '+esc(r.severe.stack.palace)+'宮</div>':"")+
+        '</div>';
+    }else{
+      html+='<div class="dimcard d-嚴重忌"><div class="dimhead">'+lightDot("綠",unknown)+'<span class="nm">嚴重忌</span><span class="pl">全盤無忌象</span></div>'+
+        '<div class="dimtext">今日無嚴重忌,平常心過好每一刻。</div></div>';
+    }
+  }else{
+    html+='<div class="empty">流日資料計算失敗,請重新整理</div>';
+  }
+  v.innerHTML=html;
+}
+function layerCardHtml(m,label,sub,layerObj,seed){
+  var hits=layerHits(m,layerObj.stem,seed);
+  var rows=hits.map(function(hit){
+    if(hit.dim==="個人"){
+      return '<div class="hitline"><span class="hua hua-'+esc(hit.hua)+'">'+esc(hit.hua)+'</span>'+
+        '<div><div class="tx">'+esc(hit.mingLine||"")+'</div><div class="src">'+esc(hit.star)+' 落命宮</div></div></div>';
+    }
+    return '<div class="hitline"><span class="hua hua-'+esc(hit.hua)+'">'+esc(hit.hua)+'</span>'+
+      '<div><div class="tx"><b style="color:var(--gold-d)">'+esc(hit.dim)+'</b> · '+esc(hit.rule?hit.rule.text:FALLBACK_TEXT)+'</div>'+
+      '<div class="src">'+esc(hit.star)+' 落'+esc(hit.palace)+'宮</div></div></div>';
+  }).join("");
+  if(!rows)rows='<div class="hitline"><div class="tx" style="color:var(--muted)">'+esc(label)+'四化未落在六維宮位,整體平順。</div></div>';
+  return '<div class="card layercard"><div class="layerhead"><span class="t">'+esc(label)+'</span>'+
+    '<span class="s">'+esc(sub)+' · '+esc(layerObj.stem)+esc(layerObj.branch)+'</span></div>'+rows+'</div>';
+}
+
+/* ---------- Admin:成員編輯 + 家庭授權 ---------- */
+var FZ={
+  boot:function(){
+    $("#verTag").textContent=APP_VERSION;
+    $("#verFoot").textContent="家庭命盤中心 "+APP_VERSION+" · 引擎 SCORE "+ZWSCORE.SCORE_VERSION;
+    renderTopdate();
+    loadRules().catch(function(e){console.warn("rules.json 載入失敗",e);toast("文案庫載入失敗,建議稍後重整");})
+    .then(function(){
+      return fetchMembers().catch(function(e){
+        console.warn("Firestore 讀取失敗,改用快取",e);
+        if(!useCacheOrFail()){
+          $("#view").innerHTML='<div class="empty">無法連線資料庫,且沒有離線快取。<br>請檢查網路後重新整理。</div>';
+          throw e;
+        }
+      });
+    })
+    .then(function(){route();})
+    .catch(function(){});
+    window.addEventListener("hashchange",route);
+  },
+  openAdmin:function(){
+    $("#admin-panel").classList.add("show");
+    FZ.renderAdmin();
+  },
+  closeAdmin:function(){$("#admin-panel").classList.remove("show");},
+  renderAdmin:function(){
+    var rows=MEMBERS.map(function(m){
+      return '<li><span style="font-size:16px">'+esc(m.avatar||"☆")+'</span>'+
+        '<span class="grow">'+esc(m.name)+' <span style="color:#78719D;font-size:11px">'+esc(m.id)+' · 序 '+esc(m.order)+'</span></span>'+
+        '<button onclick="FZ.editMember(\''+esc(m.id)+'\')">編輯</button></li>';
+    }).join("")||'<li class="admin-empty">尚無成員</li>';
+    var usedIds=MEMBERS.map(function(m){return m.id;});
+    var freeIds=MEMBER_IDS.filter(function(x){return usedIds.indexOf(x)<0;});
+    $("#admin-body").innerHTML=
+      '<div class="admin-tip">成員生辰只存 Firestore,不會進到程式碼或版本庫。</div>'+
+      '<ul class="mlist">'+rows+'</ul>'+
+      (freeIds.length?'<button class="btn btn-g" style="width:100%" onclick="FZ.editMember(null)">＋ 新增成員</button>':'<div class="admin-tip">8 位成員已建滿。</div>')+
+      '<div class="goldline"></div>'+
+      '<div class="admin-head-title" style="margin-bottom:8px">家庭授權名單</div>'+
+      '<div class="admin-tip">被授權的 Gmail 可登入本頁(family=true)。管理員本人免設定。</div>'+
+      '<ul class="admin-list" id="fam-list"><li class="admin-empty">載入中…</li></ul>'+
+      '<div class="admin-add"><input type="email" id="fam-email" placeholder="user@gmail.com" autocomplete="off"><button onclick="FZ.addFamily()">授權</button></div>'+
+      '<div id="editor-slot"></div>';
+    FZ.loadFamily();
+  },
+  loadFamily:function(){
+    var ul=$("#fam-list");
+    db().collection("allowed_emails").get().then(function(snap){
+      var items=[];
+      snap.forEach(function(doc){
+        if(doc.data().family===true)items.push(doc.id);
+      });
+      ul.innerHTML='<li><span class="em em-admin">covernself@gmail.com(管理員)</span></li>'+
+        (items.map(function(em){
+          return '<li><span class="em">'+esc(em)+'</span><button class="del-btn" onclick="FZ.removeFamily(\''+esc(em)+'\')">移除</button></li>';
+        }).join("")||'<li class="admin-empty">尚未授權其他家人</li>');
+    }).catch(function(e){
+      ul.innerHTML='<li class="admin-empty" style="color:#E06A50">讀取失敗:'+esc(e.message||e.code)+'</li>';
+    });
+  },
+  addFamily:function(){
+    var input=$("#fam-email");
+    var email=(input.value||"").trim().toLowerCase();
+    if(!email||email.indexOf("@")<0){toast("請輸入有效 email");return;}
+    /* merge:true — 不覆蓋 ziwei-learn 既有授權欄位 */
+    db().collection("allowed_emails").doc(email).set({
+      family:true,
+      familyAddedAt:firebase.firestore.FieldValue.serverTimestamp(),
+      familyAddedBy:(USLED_AUTH.user&&USLED_AUTH.user.email)||"unknown"
+    },{merge:true}).then(function(){input.value="";toast("已授權");FZ.loadFamily();})
+    .catch(function(e){toast("授權失敗:"+(e.message||e.code));});
+  },
+  removeFamily:function(email){
+    if(!confirm("移除 "+email+" 的家庭授權?(不影響其在其他工具的授權)"))return;
+    db().collection("allowed_emails").doc(email).set({family:false},{merge:true})
+      .then(function(){toast("已移除");FZ.loadFamily();})
+      .catch(function(e){toast("移除失敗:"+(e.message||e.code));});
+  },
+  editMember:function(id){
+    var m=null;
+    MEMBERS.forEach(function(x){if(x.id===id)m=x;});
+    var isNew=!m;
+    m=m||{id:"",name:"",relation:"child",gender:"M",calendar:"solar",birthDate:"",isLeapMonth:false,birthHour:0,hourConfidence:"exact",avatar:"",notes:"",order:MEMBERS.length+1};
+    var usedIds=MEMBERS.map(function(x){return x.id;});
+    var idOpts=MEMBER_IDS.filter(function(x){return isNew?usedIds.indexOf(x)<0:x===m.id;})
+      .map(function(x){return '<option value="'+x+'"'+(x===m.id?" selected":"")+'>'+x+'</option>';}).join("");
+    var relOpts=Object.keys(RELATION_ZH).map(function(k){
+      return '<option value="'+k+'"'+(k===m.relation?" selected":"")+'>'+RELATION_ZH[k]+'</option>';}).join("");
+    var hourOpts=SHICHEN.map(function(t){
+      return '<option value="'+t[2]+'"'+(String(t[2])===String(m.birthHour)?" selected":"")+'>'+t[0]+'('+t[1]+')</option>';}).join("");
+    $("#editor-slot").innerHTML=
+      '<div class="goldline"></div>'+
+      '<div class="admin-head-title" style="margin-bottom:10px">'+(isNew?"新增成員":"編輯:"+esc(m.name))+'</div>'+
+      '<div class="frow"><label>代號</label><select id="f-id"'+(isNew?"":" disabled")+'>'+idOpts+'</select></div>'+
+      '<div class="frow"><label>顯示名</label><input type="text" id="f-name" value="'+esc(m.name)+'" placeholder="可用稱謂,如:爸爸"></div>'+
+      '<div class="frow"><label>關係</label><select id="f-rel">'+relOpts+'</select></div>'+
+      '<div class="frow"><label>性別</label><div class="seg"><button id="f-gm" class="'+(m.gender!=="F"?"on":"")+'" onclick="FZ.segG(this,\'M\')">男</button><button id="f-gf" class="'+(m.gender==="F"?"on":"")+'" onclick="FZ.segG(this,\'F\')">女</button></div></div>'+
+      '<div class="frow"><label>曆別</label><div class="seg"><button id="f-cs" class="'+(m.calendar!=="lunar"?"on":"")+'" onclick="FZ.segC(this,\'solar\')">國曆</button><button id="f-cl" class="'+(m.calendar==="lunar"?"on":"")+'" onclick="FZ.segC(this,\'lunar\')">農曆</button></div></div>'+
+      '<div class="frow" id="f-leaprow" style="display:'+(m.calendar==="lunar"?"flex":"none")+'"><label>閏月</label><label style="width:auto;color:var(--text)"><input type="checkbox" id="f-leap"'+(m.isLeapMonth?" checked":"")+'> 是閏月</label></div>'+
+      '<div class="frow"><label>出生日期</label><input type="date" id="f-date" value="'+esc(m.birthDate)+'"></div>'+
+      '<div class="frow"><label>時辰</label><select id="f-hour">'+hourOpts+'</select></div>'+
+      '<div class="frow"><label>時辰把握</label><select id="f-hc">'+
+        '<option value="exact"'+(m.hourConfidence==="exact"?" selected":"")+'>確定</option>'+
+        '<option value="approx"'+(m.hourConfidence==="approx"?" selected":"")+'>大約</option>'+
+        '<option value="unknown"'+(m.hourConfidence==="unknown"?" selected":"")+'>不確定</option></select></div>'+
+      '<div class="frow"><label>頭像 emoji</label><input type="text" id="f-avatar" value="'+esc(m.avatar)+'" placeholder="如 🦁(禁真人照片)" maxlength="4"></div>'+
+      '<div class="frow"><label>排序 1-8</label><input type="number" id="f-order" value="'+esc(m.order)+'" min="1" max="8"></div>'+
+      '<div class="frow"><label>備註</label><input type="text" id="f-notes" value="'+esc(m.notes||"")+'"></div>'+
+      '<div style="display:flex;gap:8px;margin-top:14px">'+
+      '<button class="btn btn-g" style="flex:1" onclick="FZ.saveMember('+(isNew?"true":"false")+')">儲存</button>'+
+      '<button class="btn btn-ghost" onclick="document.getElementById(\'editor-slot\').innerHTML=\'\'">取消</button></div>';
+    var slot=$("#editor-slot");if(slot.scrollIntoView)slot.scrollIntoView({behavior:"smooth",block:"start"});
+  },
+  segG:function(b,v){$("#f-gm").classList.toggle("on",v==="M");$("#f-gf").classList.toggle("on",v==="F");b.dataset.v=v;FZ._g=v;},
+  segC:function(b,v){$("#f-cs").classList.toggle("on",v==="solar");$("#f-cl").classList.toggle("on",v==="lunar");FZ._c=v;$("#f-leaprow").style.display=(v==="lunar")?"flex":"none";},
+  _g:null,_c:null,
+  saveMember:function(isNew){
+    var id=$("#f-id").value;
+    var name=($("#f-name").value||"").trim();
+    var birthDate=$("#f-date").value;
+    if(!id){toast("請選代號");return;}
+    if(!name){toast("請填顯示名");return;}
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(birthDate)){toast("請填出生日期");return;}
+    var gender=FZ._g||($("#f-gf").classList.contains("on")?"F":"M");
+    var calendar=FZ._c||($("#f-cl").classList.contains("on")?"lunar":"solar");
+    var doc={
+      name:name,
+      relation:$("#f-rel").value,
+      gender:gender,
+      calendar:calendar,
+      birthDate:birthDate,
+      isLeapMonth:(calendar==="lunar")&&$("#f-leap")&&$("#f-leap").checked||false,
+      birthHour:parseInt($("#f-hour").value,10)||0,
+      hourConfidence:$("#f-hc").value,
+      avatar:($("#f-avatar").value||"").trim(),
+      notes:($("#f-notes").value||"").trim(),
+      order:Math.min(8,Math.max(1,parseInt($("#f-order").value,10)||1)),
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:(USLED_AUTH.user&&USLED_AUTH.user.email)||"unknown"
+    };
+    db().collection("family_members").doc(id).set(doc,{merge:true}).then(function(){
+      toast("已儲存");
+      FZ._g=null;FZ._c=null;
+      CHARTS={};DAY_MEMO={};HORO_MEMO={};CAP_MEMO={};
+      return fetchMembers();
+    }).then(function(){FZ.renderAdmin();route();})
+    .catch(function(e){toast("儲存失敗:"+(e.message||e.code));});
+  }
+};
+window.FZ=FZ;
+
+/* ---------- 版本列 + 自動更新提示(照 ziwei-learn 慣例) ---------- */
+(function(){var v=document.getElementById("verTag");if(v)v.textContent=APP_VERSION;})();
+(function(){
+ function chk(){
+  fetch("version.json?t="+(new Date().getTime()),{cache:"no-store"})
+   .then(function(r){return r.json();})
+   .then(function(j){
+     if(j&&j.version&&j.version!==APP_VERSION){
+       var b=document.getElementById("updbar");if(!b)return;
+       b.querySelector("span").textContent="🔄 有新版本 "+j.version+"(目前 "+APP_VERSION+")· 點我更新";
+       b.style.display="flex";
+       b.onclick=function(){location.reload();};
+     }
+   }).catch(function(){});
+ }
+ chk();setInterval(chk,10*60*1000);
+})();
+</script>
+</body>
+</html>

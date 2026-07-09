@@ -1,0 +1,9 @@
+# 規格與工單(含家人稱謂結構,保守處理不上傳)
+specs/
+HANDOFF.md
+
+# 本機測試與暫存(個資鐵則:任何含生辰的測試檔絕不入版本庫)
+test-local/
+*.local.*
+node_modules/
+.claude/

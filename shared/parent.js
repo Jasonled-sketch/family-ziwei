@@ -10,7 +10,7 @@
 }(typeof self !== "undefined" ? self : this, function (Z) {
   "use strict";
 
-  var PARENT_VERSION = "1.0.0";
+  var PARENT_VERSION = "2.0.0";
 
   /* ---------- R1 常數 ---------- */
   var FOCUS_PALACES = ["命宮", "官祿", "疾厄", "遷移"];
@@ -101,25 +101,56 @@
     return MODE_PLAIN;
   }
 
-  /* ---------- R5 月卡組裝 ----------
+  /* ---------- v2 模式劇本查找(modes_script;鍵=組合字串;亮相月/平常月以 name 鍵,亮相月帶 keys 陣列) ---------- */
+  function modeScriptOf(rules, comboKey, modeName) {
+    var ms = rules && rules.modes_script;
+    if (!ms) return null;
+    if (ms[comboKey]) return ms[comboKey];
+    var found = null;
+    Object.keys(ms).forEach(function (k) {
+      if (found) return;
+      var e = ms[k];
+      if (e.keys && e.keys.indexOf(comboKey) >= 0) found = e;
+    });
+    if (found) return found;
+    /* 兜底組合(子忌兜底→值班月/其餘→平常月)以模式名對回 */
+    Object.keys(ms).forEach(function (k) {
+      if (found) return;
+      if (ms[k].name === modeName) found = ms[k];
+    });
+    return found;
+  }
+
+  /* ---------- R5 月卡組裝(v2) ----------
      opts={star(前星), stars[](雙星), ageBand, focus|null, dadState, rules, monthIndex}
-     語氣總則:baby/toddler 用幼齡 R2;紅燈月省略 S4 話術;baby 亦省略話術(只談作息陪伴) */
+     v2:狀態行=status+「——」+why;actions=[r2.action,(大齡非紅:話術 優先 r2.say fallback s4.say)];
+     模式劇本=modes_script(scene/do×2/dont)獨立區塊;r2 無 why/say 或無 modes_script → v1 行為(向下相容)
+     語氣總則:幼齡(baby/toddler)無話術;紅燈月省略話術+地雷替換 */
   function monthCard(opts) {
     var rules = opts.rules;
-    var mode = crossMode(opts.dadState, opts.focus ? opts.focus.hua : null);
+    var childHua = opts.focus ? opts.focus.hua : null;
+    var mode = crossMode(opts.dadState, childHua);
+    var comboKey = opts.dadState + "×" + (childHua || "平");
     var isRed = (mode.color === "紅");
     var band = (opts.ageBand === "baby" || opts.ageBand === "toddler") ? "幼" : "大";
+    /* 模式劇本只給大齡:劇本場景為學齡語境(成績/功課/補習),
+       幼齡依 R1 語氣總則(只談作息健康陪伴發展)回落 v1 模式建議 */
+    var script = (band === "大") ? modeScriptOf(rules, comboKey, mode.name) : null;
     var r2 = null;
     if (opts.focus && rules.r2[opts.focus.palace] && rules.r2[opts.focus.palace][opts.focus.hua]) {
       r2 = rules.r2[opts.focus.palace][opts.focus.hua][band] || null;
     }
     var s4 = rules.s4[opts.star] || null;
-    var statusLine = r2 ? r2.status : "流月四化未落相處重點宮位,整體平穩";
+    var statusLine = r2
+      ? (r2.why ? r2.status + "——" + r2.why : r2.status)
+      : "流月四化未落相處重點宮位,整體平穩";
     var actions = [];
     if (r2) actions.push(r2.action);
-    actions.push(mode.advice);
-    if (!isRed && opts.ageBand !== "baby" && s4) actions.push("這樣說:" + s4.say);
+    if (!script) actions.push(mode.advice); /* v1 rules 相容:無劇本時模式建議回到 actions */
+    var sayText = (r2 && r2.say) ? r2.say : (s4 && s4.say ? s4.say : null);
+    if (!isRed && band === "大" && sayText) actions.push("這樣說:" + sayText);
     actions = actions.slice(0, 3);
+    if (!actions.length && script && script.do && script.do[0]) actions.push(script.do[0]);
     var landmine;
     if (isRed) {
       landmine = RED_LANDMINE;
@@ -131,8 +162,51 @@
     }
     return {
       statusLine: statusLine, actions: actions, landmine: landmine,
-      mode: mode, focus: opts.focus, ageBand: opts.ageBand, band: band, isRed: isRed
+      mode: mode, script: script || null,
+      focus: opts.focus, ageBand: opts.ageBand, band: band, isRed: isRed
     };
+  }
+
+  /* ---------- v2 民俗育兒宜忌(folk) ----------
+     monthAgeOf:月齡=(檢視年-出生年)×12+(檢視月-出生月);滿月當月=1
+     folkOf(rules,ctx):ctx={ageBand, monthAge, focus, solarMonth, lunarMonth}
+     回傳 {milestones:[folk], notes:[{folk,boost}], dayVeto:[folk]} ---------- */
+  function monthAgeOf(birthDate, ym) {
+    var by = parseInt(String(birthDate).slice(0, 4), 10);
+    var bm = parseInt(String(birthDate).split("-")[1], 10);
+    var y = parseInt(String(ym).slice(0, 4), 10);
+    var m = parseInt(String(ym).slice(5, 7), 10);
+    if (isNaN(by) || isNaN(bm) || isNaN(y) || isNaN(m)) return -1;
+    return (y - by) * 12 + (m - bm);
+  }
+  function folkOf(rules, ctx) {
+    var out = { milestones: [], notes: [], dayVeto: [] };
+    var list = (rules && rules.folk) || [];
+    var focusHit = !!(ctx.focus && ctx.focus.palace === "疾厄" && ctx.focus.hua === "忌");
+    list.forEach(function (f) {
+      if (!f.ageBand || f.ageBand.indexOf(ctx.ageBand) < 0) return;
+      var t = f.rule && f.rule.type;
+      if (t === "milestone") {
+        if (ctx.monthAge === f.rule.monthAge) out.milestones.push(f);
+      } else if (t === "dayVeto") {
+        out.dayVeto.push(f);
+      } else if (t === "monthVeto") {
+        var alsoLunar7 = !!(f.rule.alsoFixed && ctx.lunarMonth === 7);
+        if (focusHit || alsoLunar7) out.notes.push({ folk: f, boost: false });
+      } else if (t === "calendar") {
+        var hit = (f.rule.months && f.rule.months.indexOf(ctx.solarMonth) >= 0) ||
+                  (f.rule.lunarMonth && ctx.lunarMonth === f.rule.lunarMonth);
+        if (hit) out.notes.push({ folk: f, boost: !!(f.rule.boost && focusHit) });
+      } else {
+        /* fixed / pickDay / examDay:固定顯示 */
+        out.notes.push({ folk: f, boost: false });
+      }
+    });
+    return out;
+  }
+  /* F05 夜間外出 dayVeto:child.jiIn 含遷移 或 child.out==紅 → 該日不入好日子 */
+  function folkDayVetoHit(day) {
+    return (day.child.jiIn.indexOf("遷移") >= 0) || (day.child.out === "紅");
   }
 
   /* ---------- R4 活動(主星→陪他做;baby 親膚版/toddler 公園共讀版;hint=S4 本月重點,雙星按月輪替) ---------- */
@@ -165,7 +239,8 @@
       return a.date < b.date ? -1 : 1;
     }
     var strict = days.filter(function (d) {
-      return d.child.jiIn.length === 0 &&
+      return !d.veto &&
+        d.child.jiIn.length === 0 &&
         d.child.out === "綠" && d.child.health === "綠" &&
         d.dad.light !== "紅" &&
         d.dad.severePalace !== "疾厄" && d.dad.severePalace !== "遷移";
@@ -175,8 +250,8 @@
     if (strict.length >= 3) {
       return { days: strict.slice(0, 3).map(pick), relaxed: false };
     }
-    /* 放寬:雙方非紅,取最高 3 */
-    var pool = days.filter(function (d) { return d.child.light !== "紅" && d.dad.light !== "紅"; });
+    /* 放寬:雙方非紅(dayVeto 日仍排除),取最高 3 */
+    var pool = days.filter(function (d) { return !d.veto && d.child.light !== "紅" && d.dad.light !== "紅"; });
     pool.forEach(function (d) { d._s = scoreOf(d); });
     pool.sort(rank);
     return { days: pool.slice(0, 3).map(pick), relaxed: true };
@@ -191,7 +266,11 @@
     focusOf: focusOf,
     dadStateOf: dadStateOf,
     crossMode: crossMode,
+    modeScriptOf: modeScriptOf,
     monthCard: monthCard,
+    monthAgeOf: monthAgeOf,
+    folkOf: folkOf,
+    folkDayVetoHit: folkDayVetoHit,
     activityOf: activityOf,
     goodDays: goodDays
   };

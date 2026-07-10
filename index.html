@@ -185,6 +185,28 @@ button{font-family:inherit}
 .pcard ul{margin:0;padding-left:18px}
 .pcard li{margin-bottom:4px;font-size:14px;line-height:1.7}
 .pfoot{font-size:11px;color:var(--muted2);text-align:center;margin-top:13px;border-top:1px dashed var(--line);padding-top:9px}
+/* v2:模式劇本 / 民俗提醒 / 本月儀式 */
+.pscript{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 13px;margin-top:4px}
+.pscript .sc{font-size:13px;color:var(--muted);line-height:1.75}
+.pscript ul{margin:6px 0 0;padding-left:18px}
+.pscript li{font-size:13.5px;margin-bottom:3px;line-height:1.7}
+.pdont{font-size:13px;color:var(--lt-bad);margin-top:7px;line-height:1.7}
+.milestone{background:rgba(231,197,125,.08);border:1px solid rgba(231,197,125,.45);border-radius:14px;
+  padding:12px 14px;margin:4px 0 10px}
+.milestone .mt{font-family:'Noto Serif TC',serif;font-weight:900;font-size:15px;color:var(--gold);margin-bottom:4px}
+.milestone .mx{font-size:13px;color:var(--text);line-height:1.75}
+.milestone .mr{font-size:12px;color:var(--muted);margin-top:4px}
+.milestone .md{font-size:12.5px;color:var(--lt-good);margin-top:5px}
+.folkbox details{border-top:1px dashed var(--line);padding:7px 0}
+.folkbox details:first-of-type{border-top:none}
+.folkbox summary{cursor:pointer;font-size:13.5px;color:var(--text);list-style:none;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.folkbox summary::-webkit-details-marker{display:none}
+.folkbox summary::after{content:"▸";margin-left:auto;color:var(--muted2);font-size:11px}
+.folkbox details[open] summary::after{content:"▾"}
+.folkbox .fx{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.75}
+.folkbox .fr{font-size:12.5px;color:var(--gold-b);margin-top:3px;line-height:1.75}
+.folkbox .fshow{font-size:11px;color:var(--lt-flat)}
+.folk-disc{font-size:10.5px;color:var(--muted2);margin-top:8px;line-height:1.7}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;border:1px solid var(--line2);
   color:var(--muted);border-radius:20px;padding:2px 10px;margin-right:5px}
 .chip.gold{color:var(--gold);border-color:var(--gold-d)}
@@ -510,7 +532,7 @@ body.is-admin #admin-fab{display:inline-flex;align-items:center;gap:6px}
    家庭命盤中心 · Phase 1(文字版)
    評分引擎=shared/score.js(ZWSCORE)、文案=shared/rules.json
    ============================================================ */
-var APP_VERSION = "v0.3.1";
+var APP_VERSION = "v0.4.0";
 
 /* ---------- 小工具 ---------- */
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
@@ -915,8 +937,15 @@ function monthDimsOf(m,ym){
     stems:{natal:natal,decadal:h.decadal.stem,yearly:h.yearly.stem,monthly:h.monthly.stem}
   });
 }
-function buildParentDays(kid,dad,ym){
-  /* R4 掃當月每日雙方流日(scoresOf 有 memo,一次算整月) */
+/* 農曆月解析(iztro lunarDate 如「二〇二六年七月初三」;腊/臘=12、冬=11、閏月同號) */
+function lunarMonthOf(lunarDateStr){
+  var m=String(lunarDateStr||"").match(/年(閏)?(十一|十二|正|冬|腊|臘|十|[一二三四五六七八九])月/);
+  if(!m)return null;
+  var map={"正":1,"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10,"十一":11,"十二":12,"冬":11,"腊":12,"臘":12};
+  return map[m[2]]||null;
+}
+function buildParentDays(kid,dad,ym,vetoEnabled){
+  /* R4 掃當月每日雙方流日(scoresOf 有 memo,一次算整月);vetoEnabled=幼齡 F05 逐日判定 */
   var parts=ym.split("-"),y=+parts[0],mo=+parts[1];
   var last=new Date(y,mo,0).getDate();
   var out=[];
@@ -937,11 +966,13 @@ function buildParentDays(kid,dad,ym){
     var lu=["命宮","遷移"].some(function(p){
       return rc.palaces[p]&&rc.palaces[p].hits.some(function(h){return h.layer==="daily"&&h.hua==="lu"&&h.via==="direct";});
     });
-    out.push({
+    var day={
       date:ds,dow:new Date(ds+"T12:00:00").getDay(),
       child:{S:Math.round(cS*100)/100,out:outL,health:heaL,jiIn:jiIn,luInMingQian:lu,light:dayOverall(rc).light},
       dad:{S:Math.round(dS*100)/100,light:dayOverall(rd).light,severePalace:rd.severe?rd.severe.palace:null}
-    });
+    };
+    if(vetoEnabled)day.veto=ZWPARENT.folkDayVetoHit(day);
+    out.push(day);
   }
   return out;
 }
@@ -957,12 +988,25 @@ function parentCardData(kid,dad,ym){
   var rdm=monthDimsOf(dad,ym);if(!rdm)return null;
   var dadState=ZWPARENT.dadStateOf(rdm.dims,hd.monthly.stem,starPalaceMapOf(dad));
   var stars=mingStarsOf(kid),star=stars[0]||"";
-  var ageBand=ZWPARENT.ageBandOf(solarBirthOf(kid),ym);
+  var solarBirth=solarBirthOf(kid);
+  var ageBand=ZWPARENT.ageBandOf(solarBirth,ym);
   var mi=parseInt(ym.slice(5,7),10);
+  /* v2 民俗:月齡/國曆月/農曆月(當月15日盤) */
+  var lunarM=lunarMonthOf(hk.lunarDate);
+  var folk=ZWPARENT.folkOf(PRULES,{
+    ageBand:ageBand,
+    monthAge:ZWPARENT.monthAgeOf(solarBirth,ym),
+    focus:focus,solarMonth:mi,lunarMonth:lunarM
+  });
+  var vetoEnabled=(folk.dayVeto.length>0);
+  var days=buildParentDays(kid,dad,ym,vetoEnabled);
+  var vetoCount=0;
+  days.forEach(function(x){if(x.veto)vetoCount++;});
   var data={
     card:ZWPARENT.monthCard({star:star,stars:stars,ageBand:ageBand,focus:focus,dadState:dadState,rules:PRULES,monthIndex:mi}),
-    gd:ZWPARENT.goodDays(buildParentDays(kid,dad,ym)),
+    gd:ZWPARENT.goodDays(days),
     act:ZWPARENT.activityOf(star,ageBand,PRULES,mi,stars),
+    folk:folk,vetoCount:vetoCount,lunarMonth:lunarM,
     star:star,stars:stars,ageBand:ageBand,dadState:dadState,focus:focus,
     monthlyGZ:hk.monthly.stem+hk.monthly.branch
   };
@@ -978,19 +1022,59 @@ function parentCardHtml(kid,dad,ym){
     return mm+"/"+parseInt(x.date.slice(8,10),10)+"("+wd+")";
   }).join("、");
   var acts=c.actions.map(function(a){return '<li>'+esc(a)+'</li>';}).join("");
+  /* v2 🎉 本月儀式(milestone;吉日=好日子前3) */
+  var milestones=(d.folk&&d.folk.milestones||[]).map(function(f){
+    return '<div class="milestone"><div class="mt">🎉 本月儀式:'+esc(f.item)+'</div>'+
+      '<div class="mx">'+esc(f.text)+'</div>'+
+      '<div class="mr">'+esc(f.remedy)+'</div>'+
+      (gdays?'<div class="md">吉日推薦:'+esc(gdays)+'</div>':"")+
+      '</div>';
+  }).join("");
+  /* v2 模式劇本(scene/do×2/dont;幼齡無劇本) */
+  var scriptHtml="";
+  if(c.script){
+    scriptHtml='<div class="pcard-sec"><div class="pcard-k">本月劇本 · '+esc(c.script.name)+'</div>'+
+      '<div class="pscript"><div class="sc">'+esc(c.script.scene)+'</div>'+
+      '<ul>'+c.script.do.map(function(x){return '<li>'+esc(x)+'</li>';}).join("")+'</ul>'+
+      '<div class="pdont">⛔ 絕對別做:'+esc(c.script.dont)+'</div></div></div>';
+  }
+  /* v2 📿 本月民俗提醒(monthVeto/calendar/fixed;摺疊展開) */
+  var folkHtml="";
+  var notes=(d.folk&&d.folk.notes)||[];
+  var folkItems=notes.map(function(n){
+    var f=n.folk;
+    return '<details><summary>'+(n.boost?'⚠ ':'')+esc(f.item)+
+      (f.rule&&f.rule.show?'<span class="fshow">'+esc(f.rule.show)+'</span>':"")+
+      (n.boost?'<span class="fshow">本月加強</span>':"")+'</summary>'+
+      '<div class="fx">'+esc(f.text)+'</div>'+
+      '<div class="fr">✦ '+esc(f.remedy)+'</div></details>';
+  }).join("");
+  if(d.vetoCount>0&&d.folk.dayVeto.length){
+    var fv=d.folk.dayVeto[0];
+    folkItems+='<details><summary>'+esc(fv.item)+'<span class="fshow">本月 '+d.vetoCount+' 天不宜(已自好日子排除)</span></summary>'+
+      '<div class="fx">'+esc(fv.text)+'</div><div class="fr">✦ '+esc(fv.remedy)+'</div></details>';
+  }
+  if(folkItems){
+    folkHtml='<div class="pcard-sec"><div class="pcard-k">📿 本月民俗提醒</div>'+
+      '<div class="folkbox">'+folkItems+'</div>'+
+      '<div class="folk-disc">'+esc(PRULES.folk_disclaimer||"")+'</div></div>';
+  }
   return '<div class="card pcard" id="pc-'+esc(kid.id)+'">'+
     '<div class="layerhead" style="align-items:center">'+avatarHtml(kid,40)+
     '<span class="t" style="margin-left:2px">'+esc(kid.name)+'</span>'+
     '<span class="s">'+mm+' 月 · '+esc(d.monthlyGZ)+'</span>'+
     '<span class="pbadge b-'+esc(c.mode.color)+'" style="margin-left:auto">'+esc(c.mode.name)+'</span></div>'+
+    milestones+
     '<div class="pcard-sec"><div class="pcard-k">本月的他'+(d.focus?'('+esc(d.focus.palace)+'·化'+esc(d.focus.hua)+')':"")+'</div>'+
     '<div class="kai16">'+esc(c.statusLine)+'</div></div>'+
+    scriptHtml+
     '<div class="pcard-sec"><div class="pcard-k">這樣相處</div><ul>'+acts+'</ul></div>'+
     '<div class="pcard-sec"><div class="pcard-k">地雷</div><div style="font-size:13.5px;color:var(--lt-bad)">'+esc(c.landmine)+'</div></div>'+
     '<div class="pcard-sec"><div class="pcard-k">親子好日子</div>'+
     '<div style="font-size:14px;color:var(--lt-good)">'+(gdays?esc(gdays):"本月無合適日")+'</div>'+
-    (d.gd.relaxed?'<div style="font-size:11.5px;color:var(--muted2)">本月整體平平,這三天相對輕鬆</div>':"")+
+    (d.gd.relaxed&&d.gd.days.length?'<div style="font-size:11.5px;color:var(--muted2)">本月整體平平,這'+d.gd.days.length+'天相對輕鬆</div>':"")+
     '<div class="kai16" style="font-size:14.5px;margin-top:4px">'+esc(d.act)+'</div></div>'+
+    folkHtml+
     '<div class="pfoot">相處參考用,孩子本人永遠比命盤重要。</div>'+
     '</div>';
 }

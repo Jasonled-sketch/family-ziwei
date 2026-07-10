@@ -10,7 +10,7 @@
 }(typeof self !== "undefined" ? self : this, function (Z) {
   "use strict";
 
-  var PARENT_VERSION = "2.0.0";
+  var PARENT_VERSION = "2.1.0";
 
   /* ---------- R1 常數 ---------- */
   var FOCUS_PALACES = ["命宮", "官祿", "疾厄", "遷移"];
@@ -93,6 +93,12 @@
   };
   var MODE_PLAIN = { name: "平常月", color: "綠", advice: "照本月建議正常互動即可" };
   var RED_LANDMINE = "這個月最忌:挑他毛病、翻舊帳、逼談未來。";
+  /* 仲裁修正6:幼齡依模式色的安全建議(取代學齡語境的 mode.advice) */
+  var YOUNG_MODE_ACTION = {
+    "紅": "行程減量,顧好吃睡就好",
+    "黃": "低成本陪伴:他玩,你在場就好",
+    "綠": "排一次公園日或野餐,存感情本"
+  };
   function crossMode(dadState, childHua) {
     var hua = childHua || "平";
     var m = MODES[dadState + "×" + hua];
@@ -145,12 +151,25 @@
       ? (r2.why ? r2.status + "——" + r2.why : r2.status)
       : "流月四化未落相處重點宮位,整體平穩";
     var actions = [];
-    if (r2) actions.push(r2.action);
-    if (!script) actions.push(mode.advice); /* v1 rules 相容:無劇本時模式建議回到 actions */
-    var sayText = (r2 && r2.say) ? r2.say : (s4 && s4.say ? s4.say : null);
-    if (!isRed && band === "大" && sayText) actions.push("這樣說:" + sayText);
-    actions = actions.slice(0, 3);
-    if (!actions.length && script && script.do && script.do[0]) actions.push(script.do[0]);
+    if (band === "幼") {
+      /* 仲裁修正6:幼齡不回落 R3 mode.advice(含功課/小紙條等學齡詞);
+         actions=[R2 action]+依模式色一條幼齡安全建議,恰 2 條 */
+      if (r2) actions.push(r2.action);
+      actions.push(YOUNG_MODE_ACTION[mode.color] || YOUNG_MODE_ACTION["綠"]);
+      if (actions.length < 2 && rules.activities_age) {
+        actions.push(opts.ageBand === "baby" ? rules.activities_age.baby : rules.activities_age.toddler);
+      }
+      actions = actions.slice(0, 2);
+    } else {
+      if (r2) actions.push(r2.action);
+      if (!script) actions.push(mode.advice); /* v1 rules 相容:無劇本時模式建議回到 actions */
+      var sayText = (r2 && r2.say) ? r2.say : (s4 && s4.say ? s4.say : null);
+      if (!isRed && sayText) actions.push("這樣說:" + sayText);
+      actions = actions.slice(0, 3);
+      /* 仲裁修正7:大齡 focus=null 且有劇本 → actions 至少 2 條(補 mode.advice) */
+      if (actions.length < 2 && script) actions.push(mode.advice);
+      if (!actions.length) actions.push(script && script.do && script.do[0] ? script.do[0] : "照日常節奏正常互動");
+    }
     var landmine;
     if (isRed) {
       landmine = RED_LANDMINE;
@@ -192,7 +211,9 @@
         out.dayVeto.push(f);
       } else if (t === "monthVeto") {
         var alsoLunar7 = !!(f.rule.alsoFixed && ctx.lunarMonth === 7);
-        if (focusHit || alsoLunar7) out.notes.push({ folk: f, boost: false });
+        if (focusHit) out.notes.push({ folk: f, boost: false });
+        /* 仲裁修正9:僅因農曆七月觸發時,show 覆寫為 alsoFixed 文字 */
+        else if (alsoLunar7) out.notes.push({ folk: f, boost: false, showOverride: f.rule.alsoFixed });
       } else if (t === "calendar") {
         var hit = (f.rule.months && f.rule.months.indexOf(ctx.solarMonth) >= 0) ||
                   (f.rule.lunarMonth && ctx.lunarMonth === f.rule.lunarMonth);

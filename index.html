@@ -532,7 +532,7 @@ body.is-admin #admin-fab{display:inline-flex;align-items:center;gap:6px}
    家庭命盤中心 · Phase 1(文字版)
    評分引擎=shared/score.js(ZWSCORE)、文案=shared/rules.json
    ============================================================ */
-var APP_VERSION = "v0.4.0";
+var APP_VERSION = "v0.5.0";
 
 /* ---------- 小工具 ---------- */
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
@@ -703,6 +703,52 @@ function pickRule(dim,huaZh,seed){
   if(!cands.length)return null;
   return cands[seed%cands.length];
 }
+/* ---------- v3 年齡分層(rules 3.0.0) ----------
+   足歲實算(生日當天進位);band 不落地儲存,每次渲染查 band_def */
+function ageOnDate(birthDate,dateStr){
+  var b=String(birthDate).split("-").map(Number),t=String(dateStr).split("-").map(Number);
+  if(b.length<3||t.length<3||isNaN(b[0])||isNaN(t[0]))return 35;
+  var age=t[0]-b[0];
+  if(t[1]<b[1]||(t[1]===b[1]&&(t[2]||1)<(b[2]||1)))age--;
+  if(age<0)age=0; /* 該期間首日早於出生(當年出生兒的流年卡)→ 以 baby 計 */
+  return age;
+}
+function bandOfAge(age){
+  if(RULES&&RULES.band_def){
+    for(var i=0;i<RULES.band_def.length;i++){
+      var b=RULES.band_def[i];
+      if(age>=b.min&&age<=b.max)return b.band;
+    }
+  }
+  return "adult";
+}
+function memberBandAt(m,dateStr){
+  return bandOfAge(ageOnDate(solarBirthOf(m),dateStr));
+}
+function dimLabel(dim,band){
+  if(RULES&&RULES.dim_labels&&RULES.dim_labels[band]&&RULES.dim_labels[band][dim])return RULES.dim_labels[band][dim];
+  return dim;
+}
+/* 分層取文案:band!=adult 且 band_rules 有 → 分層條文(多條輪替);查無 fallback adult */
+function bandRuleText(dim,huaZh,seed,band){
+  if(band&&band!=="adult"&&RULES&&RULES.band_rules&&RULES.band_rules[band]&&
+     RULES.band_rules[band][dim]&&RULES.band_rules[band][dim][huaZh]&&RULES.band_rules[band][dim][huaZh].length){
+    var arr=RULES.band_rules[band][dim][huaZh];
+    return arr[seed%arr.length];
+  }
+  var r=pickRule(dim,huaZh,seed);
+  return r?r.text:null;
+}
+/* 嚴重忌分層(第一版僅接線忌;祿權科緩解條入庫閒置) */
+function severeTextOf(band,seed,stack){
+  if(band&&band!=="adult"&&RULES&&RULES.band_rules&&RULES.band_rules[band]&&
+     RULES.band_rules[band]["嚴重忌"]&&RULES.band_rules[band]["嚴重忌"]["忌"]&&RULES.band_rules[band]["嚴重忌"]["忌"].length){
+    var arr=RULES.band_rules[band]["嚴重忌"]["忌"];
+    return arr[seed%arr.length];
+  }
+  var r=severeRuleOf(stack||null);
+  return r?r.text:null;
+}
 function severeRuleOf(stack){
   if(!RULES)return null;
   var fallback=null;
@@ -718,8 +764,8 @@ function severeRuleOf(stack){
   });
   return exact||any||fallback;
 }
-/* 該層四化命中清單:[{hua,star,palace,dim,rule}](個人=命宮,文案同樣來自 rules.json) */
-function layerHits(m,stem,seed){
+/* 該層四化命中清單:[{hua,star,palace,dim,text}](個人=命宮;text 已按 band 分層,查無 fallback adult) */
+function layerHits(m,stem,seed,band){
   var out=[];
   var a=chartOf(m);if(!a||!stem)return out;
   var gh=ZWSCORE.GANHUA[stem];if(!gh)return out;
@@ -733,9 +779,12 @@ function layerHits(m,stem,seed){
     if(!pn)return;
     var huaZh=HUA_ZH[hk];
     if(PALACE_DIM[pn]){
-      out.push({hua:huaZh,star:star,palace:pn,dim:PALACE_DIM[pn],rule:pickRule(PALACE_DIM[pn],huaZh,seed)});
+      var dim=PALACE_DIM[pn];
+      out.push({hua:huaZh,star:star,palace:pn,dim:dim,text:bandRuleText(dim,huaZh,seed,band)});
     }else if(pn==="命宮"){
-      out.push({hua:huaZh,star:star,palace:pn,dim:"個人",rule:pickRule("個人",huaZh,seed)});
+      /* 個人(命宮)無分層條文,沿用 adult 個人 4 句 */
+      var pr=pickRule("個人",huaZh,seed);
+      out.push({hua:huaZh,star:star,palace:pn,dim:"個人",text:pr?pr.text:null});
     }
     /* 其餘宮 v1 不顯示(田宅凶象由嚴重忌疊法承接) */
   });
@@ -883,6 +932,16 @@ function renderTodayStrip(results){
   reds.forEach(function(x){
     html+='<button class="tchip" onclick="location.hash=\'#p/'+esc(x.m.id)+'\'">'+lightDot("紅")+' '+esc(x.m.name)+'</button>';
   });
+  /* v3 分層一句:紅燈成員各附層別嚴重忌一句(最多 2 位) */
+  var seedD=parseInt(VIEW_DATE.slice(8,10),10);
+  reds.slice(0,2).forEach(function(x){
+    try{
+      var band=memberBandAt(x.m,VIEW_DATE);
+      var rr=scoresOf(x.m,VIEW_DATE);
+      var t=severeTextOf(band,seedD,rr&&rr.severe?rr.severe.stack:null);
+      if(t)html+='<div style="flex-basis:100%;font-size:12px;color:var(--muted);text-align:left">'+esc(x.m.name)+':'+esc(t)+'</div>';
+    }catch(e){}
+  });
   el.innerHTML=html;
 }
 function updateLunarHead(){
@@ -966,10 +1025,11 @@ function buildParentDays(kid,dad,ym,vetoEnabled){
     var lu=["命宮","遷移"].some(function(p){
       return rc.palaces[p]&&rc.palaces[p].hits.some(function(h){return h.layer==="daily"&&h.hua==="lu"&&h.via==="direct";});
     });
+    /* 仲裁修正8:燈色套 monthCap 防疲勞封頂,與首頁/個人頁一致 */
     var day={
       date:ds,dow:new Date(ds+"T12:00:00").getDay(),
-      child:{S:Math.round(cS*100)/100,out:outL,health:heaL,jiIn:jiIn,luInMingQian:lu,light:dayOverall(rc).light},
-      dad:{S:Math.round(dS*100)/100,light:dayOverall(rd).light,severePalace:rd.severe?rd.severe.palace:null}
+      child:{S:Math.round(cS*100)/100,out:outL,health:heaL,jiIn:jiIn,luInMingQian:lu,light:todayLightOf(kid,ds).light},
+      dad:{S:Math.round(dS*100)/100,light:todayLightOf(dad,ds).light,severePalace:rd.severe?rd.severe.palace:null}
     };
     if(vetoEnabled)day.veto=ZWPARENT.folkDayVetoHit(day);
     out.push(day);
@@ -1044,7 +1104,7 @@ function parentCardHtml(kid,dad,ym){
   var folkItems=notes.map(function(n){
     var f=n.folk;
     return '<details><summary>'+(n.boost?'⚠ ':'')+esc(f.item)+
-      (f.rule&&f.rule.show?'<span class="fshow">'+esc(f.rule.show)+'</span>':"")+
+      ((n.showOverride||f.rule&&f.rule.show)?'<span class="fshow">'+esc(n.showOverride||f.rule.show)+'</span>':"")+
       (n.boost?'<span class="fshow">本月加強</span>':"")+'</summary>'+
       '<div class="fx">'+esc(f.text)+'</div>'+
       '<div class="fr">✦ '+esc(f.remedy)+'</div></details>';
@@ -1135,6 +1195,10 @@ function renderPerson(id){
   var seedD=parseInt(VIEW_DATE.slice(8,10),10);
   var seedM=parseInt(VIEW_DATE.slice(5,7),10);
   var seedY=parseInt(VIEW_DATE.slice(0,4),10);
+  /* v3 分層:流日=當日、流月=該月首日、流年=該年首日(生日當天進位) */
+  var bandD=memberBandAt(m,VIEW_DATE);
+  var bandM=memberBandAt(m,VIEW_DATE.slice(0,7)+"-01");
+  var bandY=memberBandAt(m,VIEW_DATE.slice(0,4)+"-01-01");
 
   var html=head;
   /* 1 Hero(200px,星空+底部漸層收乾) */
@@ -1164,8 +1228,8 @@ function renderPerson(id){
 
   /* 3 年度燙金卡 / 4 月度卡 */
   if(h){
-    html+=yearCardHtml(m,h,seedY);
-    html+=monthCardHtml(m,h,seedM);
+    html+=yearCardHtml(m,h,seedY,bandY);
+    html+=monthCardHtml(m,h,seedM,bandM);
   }
   /* 5 六維雷達 + 數值條 */
   if(r){
@@ -1183,10 +1247,10 @@ function renderPerson(id){
   html+='<div class="layerhead"><span class="t">流日 · 六維</span><span class="s">'+esc(VIEW_DATE.replace(/-/g,"/"))+(h&&h.daily.stem?' · '+esc(h.daily.stem)+esc(h.daily.branch)+'日':"")+'</span></div>';
   if(r&&h){
     var dHits={};
-    layerHits(m,h.daily.stem,seedD).forEach(function(hit){
+    layerHits(m,h.daily.stem,seedD,bandD).forEach(function(hit){
       if(hit.dim==="個人"){
         html+='<div class="dimcard" style="border-left-color:var(--gold-d)"><div class="dimhead"><span class="nm">個人</span><span class="pl">命宮 · 化'+esc(hit.hua)+'('+esc(hit.star)+')</span></div>'+
-          '<div class="dimtext">'+esc(hit.rule?hit.rule.text:FALLBACK_TEXT)+'</div></div>';
+          '<div class="dimtext">'+esc(hit.text||FALLBACK_TEXT)+'</div></div>';
         return;
       }
       /* 同維多化:忌優先,其餘保留首見 */
@@ -1195,28 +1259,27 @@ function renderPerson(id){
     r.dims.forEach(function(d){
       if(d.dim==="嚴重忌")return;
       var hit=dHits[d.dim];
-      var text=hit?(hit.rule?hit.rule.text:FALLBACK_TEXT):FALLBACK_TEXT;
+      var text=hit?(hit.text||FALLBACK_TEXT):FALLBACK_TEXT;
       html+='<div class="dimcard d-'+esc(d.dim)+'">'+
-        '<div class="dimhead">'+lightDot(d.light,unknown)+'<span class="nm">'+esc(d.dim)+'</span>'+
+        '<div class="dimhead">'+lightDot(d.light,unknown)+'<span class="nm">'+esc(dimLabel(d.dim,bandD))+'</span>'+
         '<span class="pl">'+esc(d.palace)+'宮'+(hit?' · 化'+esc(hit.hua)+'('+esc(hit.star)+')':"")+'</span>'+
         '<span class="sc">S '+(d.score>0?"+":"")+esc(d.score)+' · F '+esc(d.F)+'</span></div>'+
         '<div class="dimtext">'+esc(text)+'</div></div>';
     });
-    /* 嚴重忌 */
+    /* 嚴重忌(分層:band!=adult 用 band_rules 忌條,標題用 dim_labels) */
     var sev=r.dims.filter(function(d){return d.dim==="嚴重忌";})[0];
     if(sev&&sev.palace&&sev.F>0){
-      var srule=severeRuleOf(r.severe?r.severe.stack:null);
-      var stext=srule?srule.text:("今日忌象集中在"+sev.palace+"宮:大事緩一緩,先做例行事,明天再處理。");
+      var stext=severeTextOf(bandD,seedD,r.severe?r.severe.stack:null)||("今日忌象集中在"+sev.palace+"宮:大事緩一緩,先做例行事,明天再處理。");
       html+='<div class="dimcard d-嚴重忌'+(sev.light==="紅"?" severe-red":"")+'">'+
-        '<div class="dimhead">'+lightDot(sev.light,unknown)+'<span class="nm">嚴重忌</span>'+
+        '<div class="dimhead">'+lightDot(sev.light,unknown)+'<span class="nm">'+esc(dimLabel("嚴重忌",bandD))+'</span>'+
         '<span class="pl">'+esc(sev.palace)+'宮(全盤 F 最大)</span>'+
         '<span class="sc">F '+esc(sev.F)+'</span></div>'+
         '<div class="dimtext">'+esc(stext)+'</div>'+
         (r.severe&&r.severe.stack?'<div class="capnote">疊法:'+esc(r.severe.stack.stack.join(" + "))+' @ '+esc(r.severe.stack.palace)+'宮</div>':"")+
         '</div>';
     }else{
-      html+='<div class="dimcard d-嚴重忌"><div class="dimhead">'+lightDot("綠",unknown)+'<span class="nm">嚴重忌</span><span class="pl">全盤無忌象</span></div>'+
-        '<div class="dimtext">今日無嚴重忌,平常心過好每一刻。</div></div>';
+      html+='<div class="dimcard d-嚴重忌"><div class="dimhead">'+lightDot("綠",unknown)+'<span class="nm">'+esc(dimLabel("嚴重忌",bandD))+'</span><span class="pl">全盤無忌象</span></div>'+
+        '<div class="dimtext">今日無嚴重忌象,平常心過好每一刻。</div></div>';
     }
   }else{
     html+='<div class="empty">流日資料計算失敗,請重新整理</div>';
@@ -1228,27 +1291,28 @@ function renderPerson(id){
     '<div style="font-size:11px;color:var(--muted2);margin-top:10px">本頁為紫微斗數作息提醒與生活建議,非醫療/投資建議</div></div>';
   v.innerHTML=html;
 }
-/* 3 年度燙金卡:眉標+總評楷體+關鍵詞 chip 語意色 */
-function yearCardHtml(m,h,seedY){
-  var hits=layerHits(m,h.yearly.stem,seedY);
+/* 3 年度燙金卡:眉標+總評楷體+關鍵詞 chip 語意色(band=該年首日分層) */
+function yearCardHtml(m,h,seedY,band){
+  var hits=layerHits(m,h.yearly.stem,seedY,band);
   var best=topHit(hits);
-  var summary=best?adaptText(best.rule?best.rule.text:FALLBACK_TEXT,"yearly"):"整體平順的一年,照自己的步調走。";
+  var summary=best?adaptText(best.text||FALLBACK_TEXT,"yearly"):"整體平順的一年,照自己的步調走。";
   var chips=hits.slice(0,3).map(function(x){
     var c=DIM_COLOR[x.dim]||"#A19AC8";
-    return '<span class="chip" style="color:'+c+';border-color:'+c+'66">'+esc(x.dim)+'·化'+esc(x.hua)+'</span>';
+    return '<span class="chip" style="color:'+c+';border-color:'+c+'66">'+esc(x.dim==="個人"?"個人":dimLabel(x.dim,band))+'·化'+esc(x.hua)+'</span>';
   }).join("");
   return '<div class="goldcard"><div class="eyebrow" style="margin:0 0 8px">'+esc(String(seedY))+' 流年 · '+esc(h.yearly.stem)+esc(h.yearly.branch)+'</div>'+
     '<div class="kai17">'+esc(summary)+'</div>'+
     (chips?'<div style="margin-top:10px">'+chips+'</div>':"")+'</div>';
 }
-/* 4 月度卡:月+燈號+重點一句+宜/留意兩列 */
-function monthCardHtml(m,h,seedM){
-  var hits=layerHits(m,h.monthly.stem,seedM);
+/* 4 月度卡:月+燈號+重點一句+宜/留意兩列(band=該月首日分層) */
+function monthCardHtml(m,h,seedM,band){
+  var hits=layerHits(m,h.monthly.stem,seedM,band);
   var best=topHit(hits);
-  var summary=best?adaptText(best.rule?best.rule.text:FALLBACK_TEXT,"monthly"):"本月平順,維持節奏即可。";
+  var summary=best?adaptText(best.text||FALLBACK_TEXT,"monthly"):"本月平順,維持節奏即可。";
   var hasJi=hits.some(function(x){return x.hua==="忌";});
-  var goods=hits.filter(function(x){return x.hua!=="忌";}).map(function(x){return x.dim;});
-  var bads=hits.filter(function(x){return x.hua==="忌";}).map(function(x){return x.dim;});
+  var lbl=function(x){return x.dim==="個人"?"個人":dimLabel(x.dim,band);};
+  var goods=hits.filter(function(x){return x.hua!=="忌";}).map(lbl);
+  var bads=hits.filter(function(x){return x.hua==="忌";}).map(lbl);
   return '<div class="card"><div class="layerhead"><span class="t">'+parseInt(VIEW_DATE.slice(5,7),10)+' 月 </span>'+
     lightDot(hasJi?"黃":"綠")+'<span class="s">流月 '+esc(h.monthly.stem)+esc(h.monthly.branch)+'</span></div>'+
     '<div class="kai16">'+esc(summary)+'</div>'+
@@ -1266,13 +1330,16 @@ function showShare(id){
   var ming=a.palaces.filter(function(p){return ZWSCORE.normPalace(p.name)==="命宮";})[0];
   var mingStars=ming&&ming.majorStars.length?ming.majorStars.map(function(s){return s.name;}).join("·"):"(借對宮)";
   var seedD=parseInt(VIEW_DATE.slice(8,10),10),seedM=parseInt(VIEW_DATE.slice(5,7),10);
-  var dBest=topHit(layerHits(m,h.daily.stem,seedD));
-  var mBest=topHit(layerHits(m,h.monthly.stem,seedM));
+  /* v3 分層:三句各依層別取文案 */
+  var bandD=memberBandAt(m,VIEW_DATE);
+  var bandM=memberBandAt(m,VIEW_DATE.slice(0,7)+"-01");
+  var dBest=topHit(layerHits(m,h.daily.stem,seedD,bandD));
+  var mBest=topHit(layerHits(m,h.monthly.stem,seedM,bandM));
   var sev=r.dims.filter(function(d){return d.dim==="嚴重忌";})[0];
-  var srule=(sev&&sev.F>0)?severeRuleOf(r.severe?r.severe.stack:null):null;
-  var line1=dBest?(dBest.rule?dBest.rule.text:FALLBACK_TEXT):"今日平順,把握自己的節奏。";
-  var line2=srule?srule.text:(sev&&sev.F>0?"留意"+sev.palace+"宮相關的人事,放慢處理。":"無特別留意事項,平常心。");
-  var line3=mBest?adaptText(mBest.rule?mBest.rule.text:FALLBACK_TEXT,"monthly"):"本月平順,維持節奏即可。";
+  var stext=(sev&&sev.F>0)?severeTextOf(bandD,seedD,r.severe?r.severe.stack:null):null;
+  var line1=dBest?(dBest.text||FALLBACK_TEXT):"今日平順,把握自己的節奏。";
+  var line2=stext||(sev&&sev.F>0?"留意"+sev.palace+"宮相關的人事,放慢處理。":"無特別留意事項,平常心。");
+  var line3=mBest?adaptText(mBest.text||FALLBACK_TEXT,"monthly"):"本月平順,維持節奏即可。";
   var ymArr=VIEW_DATE.split("-");
   $("#share-body").innerHTML=
     '<div class="share-card">'+

@@ -65,30 +65,110 @@ button{font-family:inherit}
 .lt.hollow{background:transparent!important;border:2px solid currentColor;animation:none}
 .lt.hollow.lt-綠{color:var(--lt-good)}.lt.hollow.lt-黃{color:var(--lt-flat)}.lt.hollow.lt-紅{color:var(--lt-bad)}
 @media (prefers-reduced-motion:reduce){.lt-紅{animation:none}}
-/* ---- 首頁成員卡 ---- */
-.memgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.memcard{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;
-  background:linear-gradient(165deg,var(--panel2),var(--panel));border:1px solid var(--line);
-  border-radius:18px;padding:16px 10px 13px;cursor:pointer;text-align:center;color:var(--text)}
-.memcard:active{transform:scale(.97)}
-.avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:28px;background:var(--raise);position:relative;
-  border:none;padding:3px;
+/* ---- 頭像(過渡版:金環+漸層底+稱謂首字;assets/img/avatar/{id}.webp 存在時自動蓋過) ---- */
+.avatar{display:inline-flex;box-sizing:border-box;border-radius:50%;flex:none;position:relative;padding:3px;
   background:conic-gradient(from 210deg,#C7A45B,#F4DCA8,#8a6f3a,#E7C57D,#C7A45B)}
-.avatar>i{width:100%;height:100%;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;font-style:normal}
-.memcard .lt{position:absolute;right:calc(50% - 34px);bottom:38px;width:14px;height:14px;border:2px solid var(--bg)}
-.memcard .lt.hollow{border-width:2px}
-.mname{font-family:'Noto Serif TC',serif;font-weight:900;font-size:15px}
-.mstar{font-size:11px;color:var(--gold-d)}
-.mflag{font-size:10px;color:var(--muted2)}
-.mflag.warn{color:var(--lt-flat)}
-/* ---- 個人頁 ---- */
+.avatar .fchar{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Noto Serif TC',serif;font-weight:900;color:var(--gold);
+  background:radial-gradient(circle at 38% 30%,#2B2452,#171230 72%);
+  text-shadow:0 0 14px rgba(231,197,125,.4);user-select:none}
+.avatar img{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:50%;object-fit:cover}
+.av-self .fchar{background:radial-gradient(circle at 38% 30%,#3A2F57,#1B1430 72%)}
+.av-spouse .fchar{background:radial-gradient(circle at 38% 30%,#3C2440,#1B1230 72%)}
+.av-child .fchar{background:radial-gradient(circle at 38% 30%,#252A52,#141A38 72%)}
+.av-mother .fchar{background:radial-gradient(circle at 38% 30%,#1F3345,#12203A 72%)}
+.av-mother_in_law .fchar{background:radial-gradient(circle at 38% 30%,#1F3C33,#122A24 72%)}
+.ring2{display:inline-block;border-radius:50%;padding:3px;
+  background:conic-gradient(from 30deg,rgba(199,164,91,.65),rgba(244,220,168,.9),rgba(138,111,58,.55),rgba(231,197,125,.85),rgba(199,164,91,.65))}
+/* ---- D4 家庭星系首頁 ---- */
+.galaxy{position:relative;width:min(100vw - 32px,420px);aspect-ratio:1/1;margin:6px auto 0;border-radius:24px;overflow:hidden;
+  background:
+    url('assets/img/bg/bg-galaxy.webp') center/cover no-repeat,
+    radial-gradient(1.2px 1.2px at 22% 18%,rgba(244,220,168,.55),transparent 60%),
+    radial-gradient(1px 1px at 68% 10%,rgba(239,235,250,.4),transparent 60%),
+    radial-gradient(1.4px 1.4px at 88% 46%,rgba(231,197,125,.45),transparent 60%),
+    radial-gradient(1px 1px at 12% 62%,rgba(156,124,240,.35),transparent 60%),
+    radial-gradient(1px 1px at 42% 84%,rgba(239,235,250,.3),transparent 60%),
+    radial-gradient(1.2px 1.2px at 60% 55%,rgba(244,220,168,.3),transparent 60%),
+    radial-gradient(circle at 50% 18%,rgba(107,79,192,.14),transparent 55%),
+    linear-gradient(180deg,#0B0918,#120F24)}
+.orbits{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.orbits circle{fill:none;stroke:rgba(231,197,125,.16);stroke-width:.4;stroke-dasharray:.5 1.5}
+.orbits .o2{animation:orbitspin 60s linear infinite}
+@keyframes orbitspin{to{stroke-dashoffset:100}}
+.gmem{position:absolute;transform:translate(-50%,-50%);background:none;border:none;padding:0;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text)}
+.gmem:active{opacity:.85}
+.gmem .gin{position:relative;display:inline-block;animation:gfloat 4s ease-in-out infinite}
+@keyframes gfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.gmem .lt{position:absolute;right:0;bottom:2px;width:14px;height:14px;border:2px solid var(--bg)}
+.gname{font-size:11px;letter-spacing:1px;color:var(--text);text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.gflag{font-size:9px;color:var(--lt-flat)}
+@media (prefers-reduced-motion:reduce){.gmem .gin{animation:none}.orbits .o2{animation:none}}
+.today-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:10px 14px;margin:14px 0 0;font-size:12.5px;color:var(--muted)}
+.today-strip b{color:var(--gold);font-family:'Noto Serif TC',serif}
+.tchip{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--lt-bad);
+  border:1px solid rgba(224,106,80,.5);border-radius:20px;padding:2px 10px;cursor:pointer;background:none}
+/* ---- 個人頁(D5) ---- */
 .backbar{display:flex;align-items:center;gap:8px;margin:14px 0 4px}
 .backbtn{background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:10px;padding:6px 12px;font-size:12px;cursor:pointer}
-.hero{display:flex;align-items:center;gap:14px;margin:12px 0 16px}
-.hero .avatar{width:72px;height:72px;font-size:36px}
-.hname{font-family:'Noto Serif TC',serif;font-weight:900;font-size:24px;letter-spacing:2px}
-.hsub{font-size:12px;color:var(--muted)}
+.hero2{position:relative;height:200px;margin:0 -16px 14px;overflow:hidden}
+.hero2 .hbg{position:absolute;inset:0;
+  background:
+    url('assets/img/bg/bg-galaxy.webp') center top/cover no-repeat,
+    radial-gradient(1.2px 1.2px at 20% 28%,rgba(244,220,168,.5),transparent 60%),
+    radial-gradient(1px 1px at 72% 16%,rgba(239,235,250,.35),transparent 60%),
+    radial-gradient(1px 1px at 86% 52%,rgba(156,124,240,.3),transparent 60%),
+    radial-gradient(circle at 50% 0%,rgba(107,79,192,.18),transparent 60%)}
+.hero2::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,9,24,.05) 25%,var(--bg) 97%)}
+.hero2 .hin{position:absolute;left:16px;right:16px;bottom:8px;display:flex;align-items:center;gap:14px;z-index:2}
+.hname{font-family:'Noto Serif TC',serif;font-weight:900;font-size:26px;letter-spacing:2px}
+.hsub{font-size:13px;color:var(--muted)}
+/* 燙金卡(雙線框) */
+.goldcard{position:relative;background:linear-gradient(165deg,var(--panel2),var(--panel));
+  border:1px solid var(--gold-d);border-radius:18px;padding:18px 16px;margin-bottom:14px;
+  box-shadow:inset 0 1px 0 rgba(244,220,168,.08)}
+.goldcard::before{content:"";position:absolute;inset:5px;border:1px solid rgba(231,197,125,.3);border-radius:13px;pointer-events:none}
+.kai17{font-family:var(--kai);font-size:17px;color:var(--gold-b);line-height:1.8}
+.kai16{font-family:var(--kai);font-size:16px;color:var(--gold-b);line-height:1.8}
+.mrow{font-size:12.5px;margin-top:6px}
+.mrow.good{color:var(--lt-good)}
+.mrow.bad{color:var(--lt-bad)}
+/* 六維數值條 */
+.vrows{margin-top:12px;text-align:left}
+.vrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.vrow .vname{flex:none;width:34px;font-size:12px;letter-spacing:1px}
+.vrow .vbar{flex:1;height:8px;background:var(--raise);border-radius:4px;overflow:hidden}
+.vrow .vbar i{display:block;height:100%;border-radius:4px}
+.vrow .vnum{flex:none;width:34px;text-align:right;font-family:'Noto Serif TC',serif;font-weight:700;font-size:16px;color:var(--text)}
+/* D3 分享卡 */
+#share-modal{position:fixed;inset:0;background:rgba(6,5,14,.88);z-index:9600;display:none;
+  align-items:center;justify-content:center;padding:16px;overflow:auto}
+#share-modal.show{display:flex}
+.share-card{position:relative;aspect-ratio:4/5;width:min(100vw - 64px,400px);
+  background:linear-gradient(170deg,#181334,#0D0A1E 70%,#0B0918);
+  border:1px solid var(--gold-d);border-radius:20px;padding:20px 18px;
+  display:flex;flex-direction:column;overflow:hidden}
+.share-card::before{content:"";position:absolute;inset:6px;border:1px solid rgba(231,197,125,.32);border-radius:15px;pointer-events:none}
+.share-card::after{content:"";position:absolute;right:-30px;bottom:-30px;width:160px;height:160px;pointer-events:none;
+  background:radial-gradient(1.5px 1.5px at 30% 40%,rgba(231,197,125,.5),transparent 60%),
+  radial-gradient(1px 1px at 60% 60%,rgba(244,220,168,.4),transparent 60%),
+  radial-gradient(1px 1px at 45% 75%,rgba(231,197,125,.35),transparent 60%);opacity:.6}
+.sc-eyebrow{font-size:10.5px;letter-spacing:.28em;color:var(--muted2);text-align:center;margin-bottom:10px}
+.sc-id{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.sc-rel{font-size:12px;color:var(--muted)}
+.sc-name{font-family:'Noto Serif TC',serif;font-weight:900;font-size:30px;letter-spacing:2px;line-height:1.3}
+.sc-radar{flex:none;display:flex;justify-content:center;margin:2px 0}
+.sc-lines{flex:1;display:flex;flex-direction:column;justify-content:center;gap:7px}
+.sc-line{display:flex;gap:8px;align-items:flex-start;font-family:var(--kai);font-size:14.5px;color:var(--gold-b);line-height:1.6}
+.sc-line .dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:7px}
+.sc-foot{display:flex;align-items:flex-end;justify-content:space-between;margin-top:8px}
+.sc-foot .d{font-size:10.5px;color:var(--muted2);letter-spacing:.15em}
+.sc-seal{width:40px;height:40px;border:2px solid #E06A50;color:#E06A50;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Noto Serif TC',serif;font-weight:900;font-size:20px;transform:rotate(-3deg)}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;border:1px solid var(--line2);
   color:var(--muted);border-radius:20px;padding:2px 10px;margin-right:5px}
 .chip.gold{color:var(--gold);border-color:var(--gold-d)}
@@ -404,6 +484,7 @@ body.is-admin #admin-fab{display:inline-flex;align-items:center;gap:6px}
     <span id="verFoot" style="color:var(--gold-d)"></span>
   </div>
 </div>
+<div id="share-modal" onclick="if(event.target===this)closeShare()"><div id="share-body"></div></div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -412,7 +493,7 @@ body.is-admin #admin-fab{display:inline-flex;align-items:center;gap:6px}
    家庭命盤中心 · Phase 1(文字版)
    評分引擎=shared/score.js(ZWSCORE)、文案=shared/rules.json
    ============================================================ */
-var APP_VERSION = "v0.1.1";
+var APP_VERSION = "v0.2.0";
 
 /* ---------- 小工具 ---------- */
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
@@ -618,6 +699,60 @@ function layerHits(m,stem,seed){
 function lightDot(light,hollow,size){
   return '<span class="lt lt-'+light+(hollow?' hollow':'')+'"'+(size?' style="width:'+size+'px;height:'+size+'px"':'')+'></span>';
 }
+/* 頭像:金環+漸層底+稱謂首字;assets/img/avatar/{id}.webp 存在時 <img> 自動蓋過(onerror 移除) */
+function avatarHtml(m,px){
+  px=px||56;
+  var f=Math.round(px*0.42);
+  var ch=(m.name||"☆").charAt(0);
+  return '<span class="avatar av-'+esc(m.relation||"child")+'" style="width:'+px+'px;height:'+px+'px">'+
+    '<span class="fchar" style="font-size:'+f+'px">'+esc(ch)+'</span>'+
+    '<img src="assets/img/avatar/'+esc(m.id)+'.webp" alt="" onerror="this.remove()">'+
+    '</span>';
+}
+/* D3 六維雷達 SVG(全站共用;軸序固定 12 點起順時針) */
+var DIM_ORDER=["事業","財運","外出","朋友","健康","忌"];
+var DIM_COLOR={"事業":"#9C7CF0","財運":"#E7C57D","外出":"#5FB9DD","朋友":"#E68CB4","健康":"#6BCB9E","忌":"#E06A50","個人":"#E7C57D"};
+function radarVals(r){
+  var vals={};
+  r.dims.forEach(function(d){
+    if(d.dim==="嚴重忌"){vals["忌"]=Math.max(0,Math.min(100,Math.round(d.F*25)));}
+    else vals[d.dim]=Math.max(8,Math.min(100,Math.round(50+d.score*10)));
+  });
+  return vals;
+}
+function radarSvg(vals,size){
+  size=size||280;
+  var R=120,LR=140;
+  function pt(k,r){var a=(-90+60*k)*Math.PI/180;return [160+r*Math.cos(a),160+r*Math.sin(a)];}
+  var grid=[0.25,0.5,0.75,1].map(function(f){
+    return '<circle cx="160" cy="160" r="'+(R*f)+'" fill="none" stroke="'+(f===1?"#453C78":"#332C5A")+'" stroke-width="1"/>';
+  }).join("");
+  var axes="",poly=[],dots="",labels="";
+  DIM_ORDER.forEach(function(d,k){
+    var pA=pt(k,R);
+    axes+='<line x1="160" y1="160" x2="'+pA[0].toFixed(1)+'" y2="'+pA[1].toFixed(1)+'" stroke="#332C5A" stroke-width="1"/>';
+    var v=Math.max(0,Math.min(100,vals[d]||0));
+    var pV=pt(k,R*v/100);
+    poly.push(pV[0].toFixed(1)+","+pV[1].toFixed(1));
+    dots+='<circle cx="'+pV[0].toFixed(1)+'" cy="'+pV[1].toFixed(1)+'" r="3.5" fill="'+DIM_COLOR[d]+'"/>';
+    var pL=pt(k,LR);
+    labels+='<text x="'+pL[0].toFixed(1)+'" y="'+pL[1].toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-size="13" fill="'+DIM_COLOR[d]+'" font-family="Noto Sans TC,sans-serif">'+(d==="忌"?"忌▲":d)+'</text>';
+  });
+  return '<svg viewBox="0 0 320 320" width="'+size+'" height="'+size+'" role="img" aria-label="六維雷達圖">'+
+    '<defs><linearGradient id="rgrad" x1="0" y1="0" x2="1" y2="1">'+
+    '<stop offset="0%" stop-color="#9C7CF0" stop-opacity=".42"/>'+
+    '<stop offset="100%" stop-color="#E7C57D" stop-opacity=".32"/></linearGradient></defs>'+
+    grid+axes+
+    '<polygon points="'+poly.join(" ")+'" fill="url(#rgrad)" stroke="#E7C57D" stroke-width="1.5"/>'+
+    dots+labels+'</svg>';
+}
+/* 該層優先命中(忌>祿>權>科) */
+var HUA_PRI={"忌":0,"祿":1,"權":2,"科":3};
+function topHit(hits){
+  var best=null;
+  hits.forEach(function(h){if(!best||HUA_PRI[h.hua]<HUA_PRI[best.hua])best=h;});
+  return best;
+}
 var CACHE_TTL_MS=7*24*60*60*1000;
 function offbarHtml(){
   if(!OFFLINE)return "";
@@ -641,51 +776,79 @@ function route(){
   if(m)renderPerson(m[1]);
   else renderHome();
 }
-/* ----- 首頁:8 成員卡 ----- */
+/* ----- 首頁:D4 家庭星系 ----- */
+var GALAXY_POS={jason:[50,50],wife:[50,19],mother:[77,63],mother_in_law:[23,63],child1:[17,32],child2:[83,32],child3:[32,88],child4:[68,88]};
+function orbitsSvg(){
+  return '<svg class="orbits" viewBox="0 0 100 100" aria-hidden="true">'+
+    '<circle cx="50" cy="50" r="30" class="o1"/><circle cx="50" cy="50" r="45" class="o2"/></svg>';
+}
 function renderHome(){
   var v=$("#view");
   if(!MEMBERS.length){
-    v.innerHTML='<div class="eyebrow">家庭 · 今日</div><h2 class="title">家人總覽</h2>'+
+    v.innerHTML='<div class="eyebrow">家庭 · 星系</div><h2 class="title">家人總覽</h2>'+
       '<div class="empty">尚未建立成員,請管理員新增</div>';
     return;
   }
-  var cards=MEMBERS.map(function(m){
-    return '<div class="memcard" id="mc-'+esc(m.id)+'" onclick="location.hash=\'#p/'+esc(m.id)+'\'">'+
-      '<div class="avatar"><i>'+esc(m.avatar||"☆")+'</i></div>'+
-      '<span class="lt" id="lt-'+esc(m.id)+'" style="background:var(--raise)"></span>'+
-      '<div class="mname">'+esc(m.name)+'</div>'+
-      '<div class="mstar" id="ms-'+esc(m.id)+'">排盤中…</div>'+
-      (m.hourConfidence==="unknown"?'<div class="mflag warn">⚠ 時辰未確認</div>'
-        :m.hourConfidence==="approx"?'<div class="mflag">時辰為推估</div>':"")+
-      '</div>';
+  var btns=MEMBERS.map(function(m,i){
+    var pos=GALAXY_POS[m.id]||[50,50];
+    var isCenter=(m.id==="jason");
+    var av=avatarHtml(m,isCenter?82:54);
+    if(isCenter)av='<span class="ring2">'+av+'</span>';
+    return '<button class="gmem" style="left:'+pos[0]+'%;top:'+pos[1]+'%" onclick="location.hash=\'#p/'+esc(m.id)+'\'" aria-label="'+esc(m.name)+'">'+
+      '<span class="gin" style="animation-delay:'+(i*0.55).toFixed(2)+'s">'+av+
+      '<span class="lt" id="lt-'+esc(m.id)+'" style="background:var(--raise)"></span></span>'+
+      '<span class="gname">'+esc(m.name)+(m.hourConfidence==="unknown"?' <span class="gflag">⚠</span>':"")+'</span>'+
+      '</button>';
   }).join("");
-  v.innerHTML='<div class="eyebrow">家庭 · 今日</div><h2 class="title">家人總覽</h2>'+
-    '<div class="memgrid">'+cards+'</div>'+
-    '<div class="note" style="margin-top:14px">點成員卡查看個人六維建議。燈號:'+
+  v.innerHTML='<div class="eyebrow" style="margin-top:14px">家庭 · 星系</div>'+
+    '<div class="galaxy">'+orbitsSvg()+btns+'</div>'+
+    '<div class="today-strip" id="today-strip">今日運勢計算中…</div>'+
+    '<div class="note" style="margin-top:12px">點頭像看個人六維建議。燈號:'+
     lightDot("綠")+' 吉 '+lightDot("黃")+' 平 '+lightDot("紅")+' 留意;空心=時辰未確認,僅供參考。</div>';
-  /* 逐人非同步算今日燈(整月+封頂),避免卡 UI */
-  var i=0;
+  /* 逐人非同步算今日燈(整月+封頂),完成後組 today-strip */
+  var i=0,results=[];
   (function next(){
-    if(i>=MEMBERS.length)return;
+    if(i>=MEMBERS.length){renderTodayStrip(results);updateLunarHead();return;}
     var m=MEMBERS[i++];
     try{
       var a=chartOf(m);
-      var msEl=$("#ms-"+m.id),ltEl=$("#lt-"+m.id);
+      var ltEl=$("#lt-"+m.id);
       if(!a){
-        if(msEl)msEl.textContent=(typeof iztro==="undefined")?"引擎未載入,請重整":"資料有誤";
         if(ltEl)ltEl.outerHTML=lightDot("黃",true);
+        results.push({m:m,light:null});
       }else{
-        var ming=a.palaces.filter(function(p){return ZWSCORE.normPalace(p.name)==="命宮";})[0];
-        var stars=ming&&ming.majorStars.length?ming.majorStars.map(function(s){return s.name;}).join("·"):"(借對宮)";
-        if(msEl)msEl.textContent="命宮 "+stars;
         var tl=todayLightOf(m,VIEW_DATE);
         if(ltEl)ltEl.outerHTML='<span class="lt lt-'+tl.light+(m.hourConfidence==="unknown"?" hollow":"")+'" id="lt-'+esc(m.id)+'"></span>';
+        results.push({m:m,light:tl.light});
       }
-    }catch(e){console.warn("成員卡計算失敗",m.id,(e&&e.code)||"ERR");}
+    }catch(e){console.warn("成員燈號計算失敗",m.id,(e&&e.code)||"ERR");results.push({m:m,light:null});}
     setTimeout(next,0);
   })();
 }
-/* ----- 個人頁 ----- */
+function renderTodayStrip(results){
+  var el=$("#today-strip");if(!el)return;
+  var c={"綠":0,"黃":0,"紅":0};
+  results.forEach(function(x){if(x.light)c[x.light]++;});
+  var reds=results.filter(function(x){return x.light==="紅";});
+  var html='今日 · <b>吉 '+c["綠"]+'</b> · 平 '+c["黃"]+' · 忌 '+c["紅"];
+  reds.forEach(function(x){
+    html+='<button class="tchip" onclick="location.hash=\'#p/'+esc(x.m.id)+'\'">'+lightDot("紅")+' '+esc(x.m.name)+'</button>';
+  });
+  el.innerHTML=html;
+}
+function updateLunarHead(){
+  try{
+    if(!MEMBERS.length)return;
+    var h=horoOf(MEMBERS[0],VIEW_DATE);
+    if(!h||!h.lunarDate)return;
+    var lun=String(h.lunarDate);
+    if(lun.indexOf("年")>=0)lun=lun.split("年")[1]||lun;
+    var d=new Date(VIEW_DATE+"T12:00:00");
+    var wd=["日","一","二","三","四","五","六"][d.getDay()];
+    $("#topdate").innerHTML=esc(VIEW_DATE.replace(/-/g,"/"))+"(週"+wd+")<br><span style='color:var(--muted2)'>農曆"+esc(lun)+"</span>";
+  }catch(e){}
+}
+/* ----- 個人頁(D5 七區塊) ----- */
 function renderPerson(id){
   var m=null;
   MEMBERS.forEach(function(x){if(x.id===id)m=x;});
@@ -710,12 +873,13 @@ function renderPerson(id){
   var seedY=parseInt(VIEW_DATE.slice(0,4),10);
 
   var html=head;
-  html+='<div class="hero">'+
-    '<div class="avatar"><i>'+esc(m.avatar||"☆")+'</i></div>'+
+  /* 1 Hero(200px,星空+底部漸層收乾) */
+  html+='<div class="hero2"><div class="hbg"></div><div class="hin">'+
+    avatarHtml(m,96)+
     '<div><div class="hname">'+esc(m.name)+'</div>'+
     '<div class="hsub">'+esc(RELATION_ZH[m.relation]||m.relation||"")+'</div>'+
     '<div style="margin-top:6px"><span class="chip gold">'+esc(mingStars)+'</span>'+
-    '<span class="chip">今日 '+lightDot(tl.light,unknown)+' '+tl.light+'燈</span></div></div></div>';
+    '<span class="chip">今日 '+lightDot(tl.light,unknown)+' '+tl.light+'燈</span></div></div></div></div>';
   if(unknown){
     html+='<div class="banner-warn">⚠ 時辰未確認——命宮身宮與時系星可能不準,結果僅供參考。確認後請管理員更新。</div>';
   }else if(approx){
@@ -730,12 +894,23 @@ function renderPerson(id){
     '<div class="s"><div class="k">五行局</div><div class="v">'+esc(a.fiveElementsClass||"—")+'</div></div>'+
     '<div class="s"><div class="k">身宮</div><div class="v">'+esc(body?ZWSCORE.normPalace(body.name):"—")+'</div></div></div>';
 
-  /* 流年卡 / 流月卡 */
+  /* 3 年度燙金卡 / 4 月度卡 */
   if(h){
-    html+=layerCardHtml(m,"流年",seedY+"",h.yearly,seedY,"yearly");
-    html+=layerCardHtml(m,"流月",VIEW_DATE.slice(0,7).replace("-","/"),h.monthly,seedM,"monthly");
+    html+=yearCardHtml(m,h,seedY);
+    html+=monthCardHtml(m,h,seedM);
   }
-  /* 流日六維卡 */
+  /* 5 六維雷達 + 數值條 */
+  if(r){
+    var vals=radarVals(r);
+    var bars=DIM_ORDER.map(function(d){
+      var v=vals[d]||0;
+      return '<div class="vrow"><span class="vname" style="color:'+DIM_COLOR[d]+'">'+(d==="忌"?"忌▲":d)+'</span>'+
+        '<div class="vbar"><i style="width:'+v+'%;background:'+DIM_COLOR[d]+'"></i></div>'+
+        '<b class="vnum">'+v+'</b></div>';
+    }).join("");
+    html+='<div class="card" style="text-align:center">'+radarSvg(vals,262)+'<div class="vrows">'+bars+'</div></div>';
+  }
+  /* 6 建議卡串(流日六維) */
   html+='<div class="goldline"></div>';
   html+='<div class="layerhead"><span class="t">流日 · 六維</span><span class="s">'+esc(VIEW_DATE.replace(/-/g,"/"))+(h&&h.daily.stem?' · '+esc(h.daily.stem)+esc(h.daily.branch)+'日':"")+'</span></div>';
   if(r&&h){
@@ -778,24 +953,81 @@ function renderPerson(id){
   }else{
     html+='<div class="empty">流日資料計算失敗,請重新整理</div>';
   }
+  /* 7 Footer:產生分享圖 + 免責 */
+  html+='<div class="goldline"></div>'+
+    '<div style="text-align:center;margin:16px 0 4px">'+
+    '<button class="btn btn-g" onclick="showShare(\''+esc(m.id)+'\')">✨ 產生分享圖</button>'+
+    '<div style="font-size:11px;color:var(--muted2);margin-top:10px">本頁為紫微斗數作息提醒與生活建議,非醫療/投資建議</div></div>';
   v.innerHTML=html;
 }
-function layerCardHtml(m,label,sub,layerObj,seed,layer){
-  var hits=layerHits(m,layerObj.stem,seed);
-  var rows=hits.map(function(hit){
-    var text=adaptText(hit.rule?hit.rule.text:FALLBACK_TEXT,layer);
-    if(hit.dim==="個人"){
-      return '<div class="hitline"><span class="hua hua-'+esc(hit.hua)+'">'+esc(hit.hua)+'</span>'+
-        '<div><div class="tx">'+esc(text)+'</div><div class="src">'+esc(hit.star)+' 落命宮</div></div></div>';
-    }
-    return '<div class="hitline"><span class="hua hua-'+esc(hit.hua)+'">'+esc(hit.hua)+'</span>'+
-      '<div><div class="tx"><b style="color:var(--gold-d)">'+esc(hit.dim)+'</b> · '+esc(text)+'</div>'+
-      '<div class="src">'+esc(hit.star)+' 落'+esc(hit.palace)+'宮</div></div></div>';
+/* 3 年度燙金卡:眉標+總評楷體+關鍵詞 chip 語意色 */
+function yearCardHtml(m,h,seedY){
+  var hits=layerHits(m,h.yearly.stem,seedY);
+  var best=topHit(hits);
+  var summary=best?adaptText(best.rule?best.rule.text:FALLBACK_TEXT,"yearly"):"整體平順的一年,照自己的步調走。";
+  var chips=hits.slice(0,3).map(function(x){
+    var c=DIM_COLOR[x.dim]||"#A19AC8";
+    return '<span class="chip" style="color:'+c+';border-color:'+c+'66">'+esc(x.dim)+'·化'+esc(x.hua)+'</span>';
   }).join("");
-  if(!rows)rows='<div class="hitline"><div class="tx" style="color:var(--muted)">'+esc(label)+'四化未落在六維宮位,整體平順。</div></div>';
-  return '<div class="card layercard"><div class="layerhead"><span class="t">'+esc(label)+'</span>'+
-    '<span class="s">'+esc(sub)+' · '+esc(layerObj.stem)+esc(layerObj.branch)+'</span></div>'+rows+'</div>';
+  return '<div class="goldcard"><div class="eyebrow" style="margin:0 0 8px">'+esc(String(seedY))+' 流年 · '+esc(h.yearly.stem)+esc(h.yearly.branch)+'</div>'+
+    '<div class="kai17">'+esc(summary)+'</div>'+
+    (chips?'<div style="margin-top:10px">'+chips+'</div>':"")+'</div>';
 }
+/* 4 月度卡:月+燈號+重點一句+宜/留意兩列 */
+function monthCardHtml(m,h,seedM){
+  var hits=layerHits(m,h.monthly.stem,seedM);
+  var best=topHit(hits);
+  var summary=best?adaptText(best.rule?best.rule.text:FALLBACK_TEXT,"monthly"):"本月平順,維持節奏即可。";
+  var hasJi=hits.some(function(x){return x.hua==="忌";});
+  var goods=hits.filter(function(x){return x.hua!=="忌";}).map(function(x){return x.dim;});
+  var bads=hits.filter(function(x){return x.hua==="忌";}).map(function(x){return x.dim;});
+  return '<div class="card"><div class="layerhead"><span class="t">'+parseInt(VIEW_DATE.slice(5,7),10)+' 月 </span>'+
+    lightDot(hasJi?"黃":"綠")+'<span class="s">流月 '+esc(h.monthly.stem)+esc(h.monthly.branch)+'</span></div>'+
+    '<div class="kai16">'+esc(summary)+'</div>'+
+    (goods.length?'<div class="mrow good">宜:'+esc(goods.join("、"))+'</div>':"")+
+    (bads.length?'<div class="mrow bad">留意:'+esc(bads.join("、"))+'</div>':"")+'</div>';
+}
+/* D3 一頁看懂分享卡(4:5;DOM 節點,長按/截圖分享) */
+function showShare(id){
+  var m=null;
+  MEMBERS.forEach(function(x){if(x.id===id)m=x;});
+  if(!m)return;
+  var a=chartOf(m);if(!a){toast("排盤未完成,請稍後再試");return;}
+  var h=horoOf(m,VIEW_DATE),r=scoresOf(m,VIEW_DATE);
+  if(!h||!r){toast("資料計算中,請稍後再試");return;}
+  var ming=a.palaces.filter(function(p){return ZWSCORE.normPalace(p.name)==="命宮";})[0];
+  var mingStars=ming&&ming.majorStars.length?ming.majorStars.map(function(s){return s.name;}).join("·"):"(借對宮)";
+  var seedD=parseInt(VIEW_DATE.slice(8,10),10),seedM=parseInt(VIEW_DATE.slice(5,7),10);
+  var dBest=topHit(layerHits(m,h.daily.stem,seedD));
+  var mBest=topHit(layerHits(m,h.monthly.stem,seedM));
+  var sev=r.dims.filter(function(d){return d.dim==="嚴重忌";})[0];
+  var srule=(sev&&sev.F>0)?severeRuleOf(r.severe?r.severe.stack:null):null;
+  var line1=dBest?(dBest.rule?dBest.rule.text:FALLBACK_TEXT):"今日平順,把握自己的節奏。";
+  var line2=srule?srule.text:(sev&&sev.F>0?"留意"+sev.palace+"宮相關的人事,放慢處理。":"無特別留意事項,平常心。");
+  var line3=mBest?adaptText(mBest.rule?mBest.rule.text:FALLBACK_TEXT,"monthly"):"本月平順,維持節奏即可。";
+  var ymArr=VIEW_DATE.split("-");
+  $("#share-body").innerHTML=
+    '<div class="share-card">'+
+    '<div class="sc-eyebrow">家庭命盤中心 · '+esc(ymArr[0])+' 年 '+parseInt(ymArr[1],10)+' 月</div>'+
+    '<div class="sc-id">'+avatarHtml(m,88)+
+    '<div><div class="sc-rel">'+esc(RELATION_ZH[m.relation]||"")+'</div>'+
+    '<div class="sc-name">'+esc(m.name)+'</div>'+
+    '<span class="chip gold">'+esc(mingStars)+'</span></div></div>'+
+    '<div class="sc-radar">'+radarSvg(radarVals(r),196)+'</div>'+
+    '<div class="sc-lines">'+
+    '<div class="sc-line"><span class="dot" style="background:#E7C57D"></span><span><b style="color:#E7C57D">今日</b> '+esc(line1)+'</span></div>'+
+    '<div class="sc-line"><span class="dot" style="background:#E06A50"></span><span><b style="color:#E06A50">留意</b> '+esc(line2)+'</span></div>'+
+    '<div class="sc-line"><span class="dot" style="background:#9C7CF0"></span><span><b style="color:#9C7CF0">本月</b> '+esc(line3)+'</span></div>'+
+    '</div>'+
+    '<div class="sc-foot"><span class="d">'+esc(VIEW_DATE.replace(/-/g,"."))+'</span>'+
+    '<span class="sc-seal">'+esc((m.name||"☆").charAt(0))+'</span></div>'+
+    '</div>'+
+    '<div style="text-align:center;margin-top:12px">'+
+    '<button class="btn btn-ghost" onclick="closeShare()">關閉</button>'+
+    '<div style="font-size:11px;color:var(--muted2);margin-top:8px">長按卡片或截圖即可分享</div></div>';
+  $("#share-modal").classList.add("show");
+}
+function closeShare(){$("#share-modal").classList.remove("show");}
 
 /* ---------- Admin:成員編輯 + 家庭授權 ---------- */
 var FZ={
